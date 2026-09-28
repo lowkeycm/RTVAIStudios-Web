@@ -45,7 +45,7 @@ Supabase dashboard sign-in succeeded, the project display name was changed to **
 
 No wildcard preview redirects were added.
 
-1. Verify a real password-recovery email and owner reset. Resend custom SMTP was configured at approximately 18:39 EDT: sender `RTVAI Studios <noreply@support.rtvaistudios.com>`, host `smtp.resend.com`, port `465`, username `resend`, and 60-second per-user interval. Resend shows the sending domain as Verified. The user entered the API key directly into Supabase; it was not read or recorded. A dashboard reload confirmed custom SMTP enabled and a stored password. Resend showed no sent emails yet, so delivery is not claimed as verified. Request recovery from the user's own browser and open the email link in that same browser for PKCE.
+1. Verify a real password-recovery email and owner reset. Resend custom SMTP was configured at approximately 18:39 EDT: sender `RTVAI Studios <noreply@support.rtvaistudios.com>`, host `smtp.resend.com`, port `465`, username `resend`, and 60-second per-user interval. Resend shows the sending domain as Verified. The user entered the API key directly into Supabase; it was not read or recorded. A dashboard reload confirmed custom SMTP enabled and a stored password. Resend subsequently confirmed a delivered sign-in email to the owner; see the follow-up below. Request recovery from the user's own browser and open the email link in that same browser for PKCE.
 2. A Supabase PAT was reported saved in Vercel, but it was not read or used. The dashboard session provided the access needed for the project name and Auth settings.
 3. Verify owner sign-in and authenticated media upload/playback at `/team-login` and `/desk`.
 4. Optional: connect Cloudflare Stream for adaptive delivery and larger uploads; existing Supabase portfolio videos already work. Some originals exceed 500 MB, so Stream is useful before heavier traffic.
@@ -61,4 +61,10 @@ Added and deployed a `Forgot password?` link, `/forgot-password` request page, `
 
 All eight deployed recovery checks passed: both recovery pages returned 200; missing and invalid callback codes redirected to the invalid-link message; anonymous password changes returned 401; foreign-origin recovery requests returned 403; malformed requests returned 400; and a non-team address received a generic 200 acknowledgement without sending mail.
 
-The original blocker was Supabase's built-in mail service, which would not deliver to the owner's Yahoo address because it is not the organization's team email. Resend custom SMTP is now configured and persisted. No account emails, permissions, or owner passwords were changed to bypass recovery. Actual delivery, owner password reset, and authenticated staff/upload checks remain pending.
+The original blocker was Supabase's built-in mail service, which would not deliver to the owner's Yahoo address because it is not the organization's team email. Resend custom SMTP is now configured and persisted. No account emails, permissions, or owner passwords were changed to bypass recovery. Sign-in email delivery and owner dashboard access are confirmed below. Owner password change and authenticated staff/upload workflow checks remain pending.
+
+## Sign-in link clarification
+
+At approximately 18:46 EDT, Resend showed the owner email as Delivered with subject `Your Magic Link`. Supabase logs recorded a successful `/otp` request, `/verify` redirect, and token exchange; the owner confirmed landing in the dashboard. This was the regular sign-in flow, not the separate password-recovery request. The earlier guidance incorrectly treated that email as a reset link.
+
+The login UI had asked for a numeric code even though the configured email supplies a link. Removed that misleading code form, clarified the separate reset option, and added `Change password` to the active member's workspace header. Existing authenticated password-change access remains restricted to verified, active members; no permissions or recovery checks were relaxed. The owner can visit `/reset-password` directly in their signed-in browser.

@@ -62,3 +62,5 @@
 /* Give the physical reel enough room to remain visible above its film frame. */
 .reel-stage{aspect-ratio:1.02}.reel-image{top:-18%;left:-10%}.reel-strip{width:82%;left:13%;bottom:5%}.reel-grid{margin-top:55px}.reel-caption{margin-top:5px}
 @media(max-width:760px){.reel-stage{aspect-ratio:.96}.reel-image{top:-17%;left:-12%;height:108%;width:108%}.reel-strip{width:87%;left:8%;bottom:5%}.reel-grid{margin-top:40px}}
+
+@media(max-width:760px){.desk-header{flex-wrap:wrap}.desk-header>div{flex-wrap:wrap;justify-content:flex-end}}

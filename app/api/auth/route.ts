@@ -9,7 +9,7 @@ export async function POST(req:Request){return safe(async()=>{
  const client=await authClient();
  if(p.password){const {error}=await client.auth.signInWithPassword({email:p.email,password:p.password});if(error)throw new HttpError(401,'The email or password is not correct.');}
  else if(p.code){const {error}=await client.auth.verifyOtp({email:p.email,token:p.code,type:'email'});if(error)throw new HttpError(400,'That code has expired or is not correct. Request a new code.');}
- else{const {error}=await client.auth.signInWithOtp({email:p.email,options:{shouldCreateUser:true,emailRedirectTo:new URL('/auth/callback',req.url).toString()}});if(error)throw new HttpError(503,'We could not send a sign-in code. Please try again later.');}
+ else{const {error}=await client.auth.signInWithOtp({email:p.email,options:{shouldCreateUser:true,emailRedirectTo:new URL('/auth/callback',req.url).toString()}});if(error)throw new HttpError(503,'We could not send a sign-in link. Please try again later.');}
  return {ok:true};
 });}
 export async function DELETE(req:Request){return safe(async()=>{sameOrigin(req);const {error}=await (await authClient()).auth.signOut();if(error)throw error;return {ok:true};});}
