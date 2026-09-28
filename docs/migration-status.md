@@ -35,8 +35,10 @@ Successful owner sign-in, role-specific authenticated workflows, and signed uplo
 
 ## Remaining account and domain steps
 
-1. Sign into the Supabase dashboard in the connected session. The dashboard currently redirects to sign-in. Rename the display name from PopOff to RTVAI Studios; this leaves the project reference and legacy video URLs unchanged.
-2. Set Auth Site URL to the final production origin and allow its `/auth/callback`. Add only approved preview callback origins as needed. Configure branded SMTP before wider team email sign-in.
+Completed at 17:24 EDT: Supabase dashboard sign-in succeeded, the project display name was changed to **RTVAI Studios**, and the project API confirmed the name and ACTIVE_HEALTHY status. The project reference and existing video URLs are unchanged. Auth Site URL is now `https://rtvai-studios-web.vercel.app`, with exactly `https://rtvai-studios-web.vercel.app/auth/callback` in the redirect allowlist; both were verified in the saved settings. No wildcard preview redirects were added.
+
+1. Configure custom SMTP before wider team email sign-in. The dashboard confirms the project still uses Supabase's built-in email service. No email-provider credentials were supplied, and no test email was sent.
+2. A Supabase PAT was reported saved in Vercel, but it was not read or used. The dashboard session provided the access needed for the project name and Auth settings.
 3. Verify owner sign-in and authenticated media upload/playback at `/team-login` and `/desk`.
 4. Attach the chosen custom domain in Vercel, apply the exact DNS records Vercel supplies, and verify HTTPS and the canonical hostname. Update Supabase Auth URLs for that hostname.
 5. Optional: connect Cloudflare Stream for adaptive delivery and larger uploads; existing Supabase portfolio videos already work. Some originals exceed 500 MB, so Stream is useful before heavier traffic.
