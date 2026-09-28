@@ -1,19 +1,45 @@
 # Vercel and Supabase migration — September 28, 2026
 
-The approved Sites version 14 is the design baseline. Clay confirmed testing of the 3D behavior before this migration.
+The approved Sites version 14 remains the design baseline. Clay confirmed testing of the 3D behavior before migration. Public copy, pricing, artwork, and interactions were preserved.
 
-Completed: Next.js runtime conversion, production build, Supabase schema replacement, private rollback archive of PopOff tables, storage preservation, server-only database access, Supabase staff authentication, signed direct media uploads, and database transaction checks.
+## Production release
 
-Supabase dashboard access is still required to rename the project display name, obtain its server secret key for Vercel, and configure Auth site/redirect URLs and email delivery. The project reference and existing video URLs remain unchanged when the display name is changed.
+- GitHub: `lowkeycm/RTVAIStudios-Web`, branch `main`.
+- Application/asset commit: `1864dc2dcdc23b59dc5f17d71f9ee2b776a3dc9d`.
+- Vercel production deployment: `dpl_FtBgUhavk3vBkznjtqyrF9ypXrt4`, status READY.
+- Production alias: https://rtvai-studios-web.vercel.app
+- All 75 binary files have been transferred, including production assets and editable originals. The transfer checkpoint is complete.
+- Next.js production build and TypeScript checks passed. Vercel deployed the same commit successfully.
+- Vercel deployment protection remains enabled. No custom domain or DNS change was made.
 
-Do not point the production domain until the server secret is saved and a deployed enquiry/intake flow has been verified. Cloudflare Stream and automated Google Calendar scheduling remain optional connections. Existing portfolio videos remain on Supabase Storage.
+## Backend
 
-Older files under docs describe the historical Sites/D1 review build. Their test results are historical; README.md and this file describe the Vercel migration.
+Supabase project `rdgwuhfghcyphleenaek` hosts the eight RTV tables with RLS and server-only access. The previous 37 PopOff tables remain in the private `popoff_archive` rollback schema. The original database had no customer records; its owner was preserved with the original representative code. Existing Auth users and all 28 stored objects remain intact. New media uses the private `rtv-production` bucket.
 
-## Transfer checkpoint
+Production has the public Supabase URL/key, the working `SUPABASE_SECRET_KEY`, and the existing `GOOGLE_CALENDAR_ID`. The secret's validity was verified through live enquiry and intake writes, without reading or exposing it. Preview environment variables have not been verified or configured.
 
-The migration source is saved on `migration/vercel-supabase`. Vercel preview deployment `dpl_AHeJb27nfT91rCVNp1peGxm6a2Ag` built successfully from `84f17ebc2017cd0d53c9a9c49dbe5c3eef269079`, but this branch does NOT yet contain the binary artwork, models, or local video previews. Do not merge or promote it yet. The execution workspace disconnected during binary transfer. Recover those unchanged binary files from the original Sites source commit `4326dcaa6eaf7a57762c8e963e1e9665c8f90d9c` in project `appgprj_6ab8116abf188191b0ae8ea4da67b7d7`.
+## Deployed verification
 
-The original live database was checked: it contains no leads, intakes, videos, activities, submissions, or settings. Its single owner member was preserved in Supabase, including the existing representative code. No customer-record migration remains.
+- Home, work, studio, pricing, booking, team login, and all four service routes returned HTTP 200.
+- All 53 deployed public binary assets matched the approved source SHA exactly.
+- All 13 portfolio video URLs returned HTTP 200 with MP4 content types.
+- A disposable enquiry was created through the production API, replayed with the same request ID, and produced exactly one lead.
+- The original representative attribution and owner assignment were retained.
+- Its private intake opened, saved a draft, submitted, and persisted the submitted answers. Three audit entries were present.
+- All disposable enquiry, intake, submission, and audit test records were removed after verification.
+- Anonymous dashboard requests returned 401; unapproved sign-in returned 403; invalid intake and unknown media returned 404. Foreign-origin submissions and invalid forms were rejected.
+- Supabase confirmed all eight application tables have RLS, the new media bucket is private, and an existing Auth account matches the active owner.
+- The production home page was checked in the browser and retains the approved cinematic artwork and layout.
 
-Vercel Production has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and the previously configured `GOOGLE_CALENDAR_ID`. `SUPABASE_SECRET_KEY` is still missing. Preview environment variables are not set. Supabase's display name is still PopOff. Production GitHub `main`, the existing Sites deployment, and DNS remain unchanged.
+Successful owner sign-in, role-specific authenticated workflows, and signed upload/playback still need an authenticated staff session. These have not been represented as completed end-to-end tests. Vercel's runtime-error aggregation tool timed out; direct deployment and API checks succeeded.
+
+## Remaining account and domain steps
+
+1. Sign into the Supabase dashboard in the connected session. The dashboard currently redirects to sign-in. Rename the display name from PopOff to RTVAI Studios; this leaves the project reference and legacy video URLs unchanged.
+2. Set Auth Site URL to the final production origin and allow its `/auth/callback`. Add only approved preview callback origins as needed. Configure branded SMTP before wider team email sign-in.
+3. Verify owner sign-in and authenticated media upload/playback at `/team-login` and `/desk`.
+4. Attach the chosen custom domain in Vercel, apply the exact DNS records Vercel supplies, and verify HTTPS and the canonical hostname. Update Supabase Auth URLs for that hostname.
+5. Optional: connect Cloudflare Stream for adaptive delivery and larger uploads; existing Supabase portfolio videos already work. Some originals exceed 500 MB, so Stream is useful before heavier traffic.
+6. Optional: connect Google Calendar OAuth for automated scheduling. Until connected, enquiries save successfully and calls can be recorded manually. Lead notification emails are not configured.
+
+Older documents under `docs` describe the historical Sites/D1 build. Their test results are historical; this file and README describe the Vercel migration. The original Sites deployment is retained as a fallback.

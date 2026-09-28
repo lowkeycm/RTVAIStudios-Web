@@ -32,4 +32,8 @@ Google Calendar scheduling requires the client ID, client secret, refresh token,
 
 ## Migration verification
 
-The database transaction checks covered enquiry creation, replay without duplicate creation, representative attribution, intake submission, and audit entries; test transactions were rolled back. Anonymous table and RPC access was checked separately. A production build verifies the Next.js migration. Full deployed enquiry/login/upload checks require the server secret to be configured.
+The database transaction checks covered enquiry creation, replay without duplicate creation, representative attribution, intake submission, and audit entries. Anonymous table and RPC access was checked separately.
+
+Production is deployed at https://rtvai-studios-web.vercel.app from GitHub `main`. The server secret is working: a deployed enquiry was saved, replayed without duplication, attributed to the existing owner, and completed through the private intake flow. Temporary test records were removed. All ten marketing/login routes returned successfully; anonymous dashboard access and unapproved sign-in were rejected. All 53 deployed binary assets matched the approved source byte for byte, and all 13 portfolio video URLs returned MP4 responses. The production build and TypeScript checks passed.
+
+Vercel deployment protection is still enabled. The Supabase display name, email sign-in redirects, and authenticated staff upload/login checks remain dashboard/account steps. See `docs/migration-status.md` for the exact release and remaining connections.
