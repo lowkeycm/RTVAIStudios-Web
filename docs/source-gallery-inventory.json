@@ -1,0 +1,110 @@
+{
+  "source": "https://rtvaistudios.com/gallery",
+  "retrieved": "2026-09-26",
+  "films": [
+    {
+      "duration": 78.808005,
+      "error": null,
+      "height": 1080,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Impossible.mp4",
+      "title": "Impossible",
+      "width": 1920
+    },
+    {
+      "duration": 198.647007,
+      "error": null,
+      "height": 3840,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Laced%20Function.mp4",
+      "title": "Laced Function (Brand Universe)",
+      "width": 2160
+    },
+    {
+      "duration": 238.655011,
+      "error": null,
+      "height": 3840,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Laced%20Function%20Ep2.mp4",
+      "title": "Laced Function Episode 2 (Community)",
+      "width": 2160
+    },
+    {
+      "duration": 398.919002,
+      "error": null,
+      "height": 3840,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Laced%20Function%20Ep3.mp4",
+      "title": "Laced Function Ep 3 (The Culture)",
+      "width": 2160
+    },
+    {
+      "duration": 70.053991,
+      "error": null,
+      "height": 1080,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Brand.mp4",
+      "title": "Be Remembered",
+      "width": 1920
+    },
+    {
+      "duration": 55.843991,
+      "error": null,
+      "height": 0,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Boring%20to%20epic.mp4",
+      "title": "Boring to Epic",
+      "width": 0
+    },
+    {
+      "duration": 39.868005,
+      "error": null,
+      "height": 1080,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Bang.mp4",
+      "title": "Bang  - Demo Spot",
+      "width": 1920
+    },
+    {
+      "duration": 100.170998,
+      "error": null,
+      "height": 0,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Santas%20Little%20Director169.mp4",
+      "title": "Santa's Little Funeral Director",
+      "width": 0
+    },
+    {
+      "duration": 46.138005,
+      "error": null,
+      "height": 0,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Heritage%20Coach%20-%20Coaches.mp4",
+      "title": "Heritage Coach - Coaches",
+      "width": 0
+    },
+    {
+      "duration": 65.318005,
+      "error": null,
+      "height": 0,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Heritage%20Coach%20Lease%20Return.mp4",
+      "title": "Heritage Coach - Fees",
+      "width": 0
+    },
+    {
+      "duration": 64.876009,
+      "error": null,
+      "height": 0,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Heritage%20Coach%20Lease%20Fees.mp4",
+      "title": "Heritage Coach  - Lease Returns",
+      "width": 0
+    },
+    {
+      "duration": 179.400651,
+      "error": null,
+      "height": 720,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Aug_26__2045_179s_202508281107_gaq8r.mp4",
+      "title": "DeathCast - Throwback Podcast",
+      "width": 1280
+    },
+    {
+      "duration": 135.850326,
+      "error": null,
+      "height": 720,
+      "source": "https://rdgwuhfghcyphleenaek.supabase.co/storage/v1/object/public/videos/Jul_20__1207_136s_202507221118_iswil.mp4",
+      "title": "Horus & Seth - Throwback Podcast",
+      "width": 1280
+    }
+  ]
+}

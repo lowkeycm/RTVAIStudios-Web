@@ -1,0 +1,94 @@
+/* Contact destinations share a primary treatment; pricing cards keep their service colors. */
+:root {
+  --contact-fill: linear-gradient(135deg, #a5f5ff 0%, #45dcf8 45%, #18bde7 100%);
+  --contact-fill-hover: linear-gradient(135deg, #d2fbff, #65eaff 48%, #36cff4);
+  --contact-shadow: inset 0 1px #e6fcff, 0 3px 0 #08738d, 0 0 24px #28d0f03b;
+}
+
+a:is([href="/book"], [href^="/book?"], [href^="/book#"]):not(.contact-scene-link):not(.contact-inline):not(:where(.price-card .button)),
+button.button.contact-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 48px;
+  max-width: 100%;
+  padding: .9rem 1.25rem;
+  border: 1px solid #a5f5ff;
+  border-radius: 6px;
+  background: var(--contact-fill);
+  color: #06242d !important;
+  box-shadow: var(--contact-shadow);
+  font-size: .9375rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-decoration: none;
+  text-align: center;
+  transition: background .2s, box-shadow .2s, transform .2s;
+}
+
+a:is([href="/book"], [href^="/book?"], [href^="/book#"]):not(.contact-scene-link):not(.contact-inline):not(:where(.price-card .button)):hover,
+button.button.contact-cta:not(:disabled):hover {
+  color: #031d26 !important;
+  background: var(--contact-fill-hover);
+  border-color: #dcfcff;
+  box-shadow: inset 0 1px #fff, 0 3px 0 #08738d, 0 0 30px #28d0f063;
+}
+
+a:is([href="/book"], [href^="/book?"], [href^="/book#"]):focus-visible,
+button.button.contact-cta:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 5px;
+}
+
+a:is([href="/book"], [href^="/book?"], [href^="/book#"]):not(.contact-scene-link):not(.contact-inline):not(:where(.price-card .button)):active,
+button.button.contact-cta:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 5px #03687866, 0 1px 0 #08738d;
+}
+
+button.button.contact-cta:disabled { opacity: .65; cursor: wait; }
+
+.studio-remote a:is([href="/book"], [href^="/book?"]).remote-talk {
+  display: flex;
+  width: 100%;
+  padding: .75rem .5rem;
+  font-size: .875rem;
+  letter-spacing: .025em;
+}
+
+a:is([href="/book"], [href^="/book?"], [href^="/book#"]) > svg,
+button.button.contact-cta > svg { flex-shrink: 0; }
+
+/* Preserve the oversized closing composition with a lit heading and arrow. */
+.closing > a.contact-scene-link { gap: 1.5rem; border-radius: 6px; }
+.closing > a.contact-scene-link:not(.contact-original-text) h2,
+.closing > a.contact-scene-link:not(.contact-original-text) h2 > span { color: #72eaff; }
+.closing > a.contact-scene-link > svg {
+  width: clamp(56px, 8vw, 110px);
+  height: clamp(56px, 8vw, 110px);
+  padding: clamp(10px, 1.5vw, 22px);
+  color: #06242d;
+  background: var(--contact-fill);
+  border: 1px solid #a5f5ff;
+  border-radius: 12px;
+  box-shadow: var(--contact-shadow);
+}
+.closing > a.contact-scene-link:not(.contact-original-text):hover h2,
+.closing > a.contact-scene-link:not(.contact-original-text):hover h2 > span { color: #b6f7ff; }
+.closing > a.contact-scene-link:hover > svg { background: var(--contact-fill-hover); }
+
+a.contact-inline[href="/book"] {
+  color: #72eaff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+a.contact-inline[href="/book"]:hover { color: #b6f7ff; }
+
+@media (prefers-reduced-motion: reduce) {
+  a:is([href="/book"], [href^="/book?"], [href^="/book#"]),
+  .closing > a.contact-scene-link > svg,
+  button.button.contact-cta { transition: none; }
+  .closing > a.contact-scene-link:hover > svg { transform: none; }
+}

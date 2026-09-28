@@ -1,0 +1,221 @@
+{
+  "spot": {
+    "channel": "Spot",
+    "label": "Vintage silver CRT",
+    "root": "Spot_CRT",
+    "screen": "Spot_Screen",
+    "render": "/studio/displays/spot-crt-v4.webp",
+    "glb": "/studio/displays/spot-crt-v4.glb",
+    "width": 980,
+    "height": 700,
+    "corners": [
+      [
+        186.206,
+        270.068
+      ],
+      [
+        579.412,
+        284.731
+      ],
+      [
+        579.412,
+        587.068
+      ],
+      [
+        186.206,
+        572.405
+      ]
+    ],
+    "camera": {
+      "azimuthDeg": 15,
+      "elevationDeg": 8,
+      "orthographicScale": 1.04,
+      "target": [
+        0,
+        0.307,
+        0
+      ]
+    },
+    "center": [
+      -0.0689999982714653,
+      0.24500000104308128,
+      0.18199999630451202
+    ],
+    "widthMeters": 0.432,
+    "heightMeters": 0.324,
+    "dimensionsMeters": [
+      0.6669999957084656,
+      0.6307849193033676,
+      0.46949999947826127
+    ],
+    "knobs": [
+      {
+        "mesh": "Spot_Knob1",
+        "center": [
+          0.255,
+          0.365,
+          0.206
+        ],
+        "pixelCenter": [
+          671.861,
+          330.629
+        ],
+        "hitRadiusPx": 32
+      },
+      {
+        "mesh": "Spot_Knob2",
+        "center": [
+          0.255,
+          0.272,
+          0.206
+        ],
+        "pixelCenter": [
+          671.861,
+          417.411
+        ],
+        "hitRadiusPx": 32
+      }
+    ],
+    "bytes": 2670140,
+    "webp": "spot-crt-v4.webp"
+  },
+  "impossible": {
+    "channel": "Impossible",
+    "root": "Impossible_Cinema",
+    "screen": "Impossible_Screen",
+    "render": "/studio/displays/impossible-display.webp",
+    "width": 1400,
+    "height": 1000,
+    "corners": [
+      [
+        187.647,
+        133.34
+      ],
+      [
+        1203.738,
+        138.342
+      ],
+      [
+        1203.738,
+        711.344
+      ],
+      [
+        187.647,
+        706.343
+      ]
+    ],
+    "camera": "orthographic, subtle 5deg right / 3deg above",
+    "glb": "/studio/displays/impossible-cinema.glb",
+    "material": "VIDEO_Impossible",
+    "center": [
+      0,
+      1.03,
+      0.104
+    ],
+    "widthMeters": 2.208,
+    "heightMeters": 1.242,
+    "dimensionsMeters": [
+      2.304,
+      1.712,
+      0.49
+    ],
+    "bytes": 359048,
+    "webp": "impossible-display.webp"
+  },
+  "avatar": {
+    "channel": "Avatar",
+    "label": "Portrait tablet",
+    "root": "Avatar_Portrait",
+    "screen": "Avatar_Screen",
+    "render": "/studio/displays/avatar-tablet-v4.webp",
+    "glb": "/studio/displays/avatar-tablet-v4.glb",
+    "width": 980,
+    "height": 700,
+    "corners": [
+      [
+        309.847,
+        105.565
+      ],
+      [
+        661.275,
+        118.67
+      ],
+      [
+        661.275,
+        599.049
+      ],
+      [
+        309.847,
+        585.944
+      ]
+    ],
+    "camera": {
+      "azimuthDeg": 15,
+      "elevationDeg": 8,
+      "orthographicScale": 0.4,
+      "target": [
+        0,
+        0.123,
+        0
+      ]
+    },
+    "center": [
+      0.0,
+      0.1230000015348196,
+      0.007000000216066837
+    ],
+    "widthMeters": 0.1485,
+    "heightMeters": 0.198,
+    "dimensionsMeters": [
+      0.19130708277225494,
+      0.2475392012274824,
+      0.01615000023559273
+    ],
+    "knobs": [],
+    "bytes": 200808,
+    "webp": "avatar-tablet-v4.webp"
+  },
+  "universe": {
+    "channel": "Universe",
+    "root": "Universe_Console",
+    "screen": "Universe_Screen",
+    "render": "/studio/displays/universe-display.webp",
+    "width": 1400,
+    "height": 1000,
+    "corners": [
+      [
+        304.849,
+        135.441
+      ],
+      [
+        1088.707,
+        139.299
+      ],
+      [
+        1088.707,
+        581.339
+      ],
+      [
+        304.849,
+        577.481
+      ]
+    ],
+    "camera": "orthographic, subtle 5deg right / 3deg above",
+    "glb": "/studio/displays/universe-console.glb",
+    "material": "VIDEO_Universe",
+    "center": [
+      0,
+      1.41,
+      0.095
+    ],
+    "widthMeters": 2.08,
+    "heightMeters": 1.17,
+    "dimensionsMeters": [
+      2.39,
+      2.057,
+      0.6315
+    ],
+    "bytes": 811468,
+    "webp": "universe-display.webp"
+  }
+}

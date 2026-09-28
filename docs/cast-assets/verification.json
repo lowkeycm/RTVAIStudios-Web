@@ -1,0 +1,158 @@
+[
+  {
+    "name": "Truth Washington",
+    "slug": "truth-washington",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/truth-washington.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/truth-washington.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1133688,
+    "transparent_fraction": 0.721,
+    "subject_bbox_alpha_gt_128": [
+      192,
+      31,
+      811,
+      1513
+    ],
+    "png_bytes": 1680563,
+    "webp_bytes": 146142,
+    "webp_alpha_matches": true
+  },
+  {
+    "name": "Jen Sparx",
+    "slug": "jen-sparx",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/jen-sparx.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/jen-sparx.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1175874,
+    "transparent_fraction": 0.748,
+    "subject_bbox_alpha_gt_128": [
+      100,
+      19,
+      849,
+      1482
+    ],
+    "png_bytes": 1533815,
+    "webp_bytes": 119248,
+    "webp_alpha_matches": true
+  },
+  {
+    "name": "Tasha Green",
+    "slug": "tasha-green",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/tasha-green.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/tasha-green.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1195146,
+    "transparent_fraction": 0.76,
+    "subject_bbox_alpha_gt_128": [
+      320,
+      17,
+      775,
+      1504
+    ],
+    "png_bytes": 1420976,
+    "webp_bytes": 107076,
+    "webp_alpha_matches": true
+  },
+  {
+    "name": "Cornell Vybes",
+    "slug": "cornell-vybes",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/cornell-vybes.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/cornell-vybes.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1157846,
+    "transparent_fraction": 0.736,
+    "subject_bbox_alpha_gt_128": [
+      283,
+      9,
+      734,
+      1511
+    ],
+    "png_bytes": 1649085,
+    "webp_bytes": 134694,
+    "webp_alpha_matches": true
+  },
+  {
+    "name": "Real Deal Richards",
+    "slug": "real-deal-richards",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/real-deal-richards.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/real-deal-richards.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1170635,
+    "transparent_fraction": 0.744,
+    "subject_bbox_alpha_gt_128": [
+      81,
+      50,
+      797,
+      1471
+    ],
+    "png_bytes": 1549772,
+    "webp_bytes": 114570,
+    "webp_alpha_matches": true
+  },
+  {
+    "name": "Yolo Yung",
+    "slug": "yolo-yung",
+    "png": "/workspace/scratch/7866385fc2b5/cast-generated/yolo-yung.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-generated/yolo-yung.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      254
+    ],
+    "transparent_pixels": 1050856,
+    "transparent_fraction": 0.668,
+    "subject_bbox_alpha_gt_128": [
+      82,
+      26,
+      921,
+      1475
+    ],
+    "png_bytes": 1761291,
+    "webp_bytes": 184058,
+    "webp_alpha_matches": true
+  }
+]

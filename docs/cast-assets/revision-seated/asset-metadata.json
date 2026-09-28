@@ -1,0 +1,30 @@
+[
+  {
+    "name": "truth-washington-faithful",
+    "native_dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA",
+    "png_bytes": 1641792,
+    "webp_bytes": 141792,
+    "webp_alpha_exactly_preserved": true,
+    "source": "/workspace/scratch/7866385fc2b5/generated_images/exec-6a5605d9-38cc-4a7d-a1c3-731a700aacfd.png",
+    "png": "/workspace/scratch/7866385fc2b5/cast-revision-seated/truth-washington-faithful.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-revision-seated/truth-washington-faithful.webp"
+  },
+  {
+    "name": "reception-truth-jen-seated",
+    "native_dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB",
+    "png_bytes": 2067106,
+    "webp_bytes": 253274,
+    "webp_alpha_exactly_preserved": null,
+    "source": "/workspace/scratch/7866385fc2b5/generated_images/exec-8b90c235-eb69-4351-86db-ddf42d6ca26b.png",
+    "png": "/workspace/scratch/7866385fc2b5/cast-revision-seated/reception-truth-jen-seated.png",
+    "webp": "/workspace/scratch/7866385fc2b5/cast-revision-seated/reception-truth-jen-seated.webp"
+  }
+]
