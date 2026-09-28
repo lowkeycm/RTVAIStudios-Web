@@ -45,3 +45,11 @@ Completed at 17:24 EDT: Supabase dashboard sign-in succeeded, the project displa
 6. Optional: connect Google Calendar OAuth for automated scheduling. Until connected, enquiries save successfully and calls can be recorded manually. Lead notification emails are not configured.
 
 Older documents under `docs` describe the historical Sites/D1 build. Their test results are historical; this file and README describe the Vercel migration. The original Sites deployment is retained as a fallback.
+
+## Owner password recovery follow-up
+
+The reported login failures reached Supabase Auth and returned `invalid_credentials`. The owner member is active with the admin role; the matching Auth user is confirmed, has a password set, and is not banned. No password was inspected or changed.
+
+Added a `Forgot password?` link, `/forgot-password` request page, `/auth/recovery` PKCE callback, and `/reset-password` form backed by an authenticated, rate-limited API. The exact production `/auth/recovery` URL was added to Supabase's redirect allowlist. The production build and TypeScript checks passed.
+
+The built-in Supabase mail service will not deliver to the owner's Yahoo address because it is not the organization's team email. Custom SMTP is required before an actual recovery email or password change can be verified. No account emails, permissions, or passwords were changed to bypass that requirement. Authenticated staff and upload checks remain pending recovery.
