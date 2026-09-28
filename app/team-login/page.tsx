@@ -24,7 +24,7 @@ export default function Login() {
       <p>Check your inbox for a sign-in link. Open it in this same browser to enter your studio workspace.</p>
       <p>To change your password, use the password-reset option below.</p>
       <button type="button" className="text-link" onClick={() => setSent(false)}>Use another email or request a new link</button>
-    </div> : <form onSubmit={async event => {
+    </div> : <form className="desk-auth-form" onSubmit={async event => {
       event.preventDefault(); setBusy(true); setError('');
       try {
         const response = await fetch('/api/auth', {
@@ -43,8 +43,10 @@ export default function Login() {
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="button light" disabled={busy}>{busy ? 'One moment…' : passwordMode ? 'Open my studio' : 'Email my sign-in link'}<ArrowUpRight size={18}/></button>
     </form>}
+    <nav className="desk-auth-links" aria-label="Sign-in options">
     <button type="button" className="text-link" disabled={busy} onClick={() => {setPasswordMode(!passwordMode); setSent(false); setError('');}}>{passwordMode ? 'Sign in with an email link' : 'Use my password'}</button>
     <a href="/forgot-password" className="text-link">Forgot password? Send a reset link</a>
     <a href="/" className="text-link">Back to the website</a>
+    </nav>
   </div></main>;
 }

@@ -64,3 +64,5 @@
 @media(max-width:760px){.reel-stage{aspect-ratio:.96}.reel-image{top:-17%;left:-12%;height:108%;width:108%}.reel-strip{width:87%;left:8%;bottom:5%}.reel-grid{margin-top:40px}}
 
 @media(max-width:760px){.desk-header{flex-wrap:wrap}.desk-header>div{flex-wrap:wrap;justify-content:flex-end}}
+
+.desk-auth-form{display:grid;gap:18px}.desk-auth-form .field label{display:block;margin-bottom:8px}.desk-auth-form>.button{justify-self:start}.desk-auth-links{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-top:24px}
