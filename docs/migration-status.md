@@ -5,12 +5,13 @@ The approved Sites version 14 remains the design baseline. Clay confirmed testin
 ## Production release
 
 - GitHub: `lowkeycm/RTVAIStudios-Web`, branch `main`.
-- Application/asset commit: `1864dc2dcdc23b59dc5f17d71f9ee2b776a3dc9d`.
-- Vercel production deployment: `dpl_FtBgUhavk3vBkznjtqyrF9ypXrt4`, status READY.
-- Production alias: https://rtvai-studios-web.vercel.app
+- Current application commit (including password recovery): `b31df4b84df97243c4a027ed9c64c460c0dcb823`.
+- Vercel production deployment: `dpl_4ayu3GicRcU1YxFkdMw1r7fRpXH5`, status READY.
+- Canonical production URL: https://www.rtvaistudios.com. The apex domain redirects to `www`; HTTPS and approved content were verified on both hostnames.
+- Vercel alias: https://rtvai-studios-web.vercel.app
 - All 75 binary files have been transferred, including production assets and editable originals. The transfer checkpoint is complete.
 - Next.js production build and TypeScript checks passed. Vercel deployed the same commit successfully.
-- Vercel deployment protection remains enabled. No custom domain or DNS change was made.
+- Vercel deployment protection remains enabled for non-custom domains. The custom domain was already attached when inspected; no DNS edits were made during the recovery work.
 
 ## Backend
 
@@ -35,14 +36,20 @@ Successful owner sign-in, role-specific authenticated workflows, and signed uplo
 
 ## Remaining account and domain steps
 
-Completed at 17:24 EDT: Supabase dashboard sign-in succeeded, the project display name was changed to **RTVAI Studios**, and the project API confirmed the name and ACTIVE_HEALTHY status. The project reference and existing video URLs are unchanged. Auth Site URL is now `https://rtvai-studios-web.vercel.app`, with exactly `https://rtvai-studios-web.vercel.app/auth/callback` in the redirect allowlist; both were verified in the saved settings. No wildcard preview redirects were added.
+Supabase dashboard sign-in succeeded, the project display name was changed to **RTVAI Studios**, and the project API confirmed the name and ACTIVE_HEALTHY status. The project reference and existing video URLs are unchanged. The custom domain is now live. Auth Site URL is `https://www.rtvaistudios.com`, with these four exact redirect URLs verified in the saved settings:
+
+- `https://www.rtvaistudios.com/auth/callback`
+- `https://www.rtvaistudios.com/auth/recovery`
+- `https://rtvai-studios-web.vercel.app/auth/callback`
+- `https://rtvai-studios-web.vercel.app/auth/recovery`
+
+No wildcard preview redirects were added.
 
 1. Configure custom SMTP before wider team email sign-in. The dashboard confirms the project still uses Supabase's built-in email service. No email-provider credentials were supplied, and no test email was sent.
 2. A Supabase PAT was reported saved in Vercel, but it was not read or used. The dashboard session provided the access needed for the project name and Auth settings.
 3. Verify owner sign-in and authenticated media upload/playback at `/team-login` and `/desk`.
-4. Attach the chosen custom domain in Vercel, apply the exact DNS records Vercel supplies, and verify HTTPS and the canonical hostname. Update Supabase Auth URLs for that hostname.
-5. Optional: connect Cloudflare Stream for adaptive delivery and larger uploads; existing Supabase portfolio videos already work. Some originals exceed 500 MB, so Stream is useful before heavier traffic.
-6. Optional: connect Google Calendar OAuth for automated scheduling. Until connected, enquiries save successfully and calls can be recorded manually. Lead notification emails are not configured.
+4. Optional: connect Cloudflare Stream for adaptive delivery and larger uploads; existing Supabase portfolio videos already work. Some originals exceed 500 MB, so Stream is useful before heavier traffic.
+5. Optional: connect Google Calendar OAuth for automated scheduling. Until connected, enquiries save successfully and calls can be recorded manually. Lead notification emails are not configured.
 
 Older documents under `docs` describe the historical Sites/D1 build. Their test results are historical; this file and README describe the Vercel migration. The original Sites deployment is retained as a fallback.
 
@@ -50,6 +57,8 @@ Older documents under `docs` describe the historical Sites/D1 build. Their test 
 
 The reported login failures reached Supabase Auth and returned `invalid_credentials`. The owner member is active with the admin role; the matching Auth user is confirmed, has a password set, and is not banned. No password was inspected or changed.
 
-Added a `Forgot password?` link, `/forgot-password` request page, `/auth/recovery` PKCE callback, and `/reset-password` form backed by an authenticated, rate-limited API. The exact production `/auth/recovery` URL was added to Supabase's redirect allowlist. The production build and TypeScript checks passed.
+Added and deployed a `Forgot password?` link, `/forgot-password` request page, `/auth/recovery` PKCE callback, and `/reset-password` form backed by an authenticated, rate-limited API. The exact production `/auth/recovery` URLs were added to Supabase's redirect allowlist. The production build and TypeScript checks passed. The recovery page was visually verified at the custom domain.
+
+All eight deployed recovery checks passed: both recovery pages returned 200; missing and invalid callback codes redirected to the invalid-link message; anonymous password changes returned 401; foreign-origin recovery requests returned 403; malformed requests returned 400; and a non-team address received a generic 200 acknowledgement without sending mail.
 
 The built-in Supabase mail service will not deliver to the owner's Yahoo address because it is not the organization's team email. Custom SMTP is required before an actual recovery email or password change can be verified. No account emails, permissions, or passwords were changed to bypass that requirement. Authenticated staff and upload checks remain pending recovery.
