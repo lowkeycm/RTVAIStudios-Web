@@ -7,13 +7,12 @@ type VideoRecord = Film & VideoVisibility & {object_key:string; show_cta?:boolea
 
 export async function accessibleVideo(key: string, allowStaff = false) {
   if (!/^[a-zA-Z0-9_-]{3,80}$/.test(key)) throw new HttpError(404, 'Video not found.');
-  if (baselineFilms.some(film => film.id === key)) {
-    const film = (await getPublicFilms()).find(film => film.id === key);
-    if (film) return {...film, status: 'Ready', published: 1, consent: 1, show_cta: true, object_key:''};
-    throw new HttpError(404, 'Video not found.');
-  }
   const video = await result<VideoRecord | null>(admin().from('videos').select('*').or(`id.eq.${key},share_key.eq.${key}`).maybeSingle());
-  if (!video) throw new HttpError(404, 'Video not found.');
+  if (!video) {
+    const legacy = baselineFilms.some(f=>f.id===key) ? (await getPublicFilms()).find(f=>f.id===key) : null;
+    if(legacy)return {...legacy,status:'Ready',published:1,consent:1,show_cta:true,object_key:''};
+    throw new HttpError(404,'Video not found.');
+  }
   if (!canWatchVideo(video, key)) {
     const member = allowStaff ? await currentMember() : null;
     if (!canWatchVideo(video, key, member?.role)) throw new HttpError(404, 'Video not found.');

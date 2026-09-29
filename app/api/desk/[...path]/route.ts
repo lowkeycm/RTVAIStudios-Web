@@ -5,6 +5,8 @@ import {streamRequest,streamUpload,bookGoogleCall} from '@/lib/providers';
 import {channels,stages} from '@/lib/catalog';
 import {createBunnyVideo,bunnyUploadTicket,getBunnyStatus} from '@/lib/bunny';
 import {videoSharePath} from '@/lib/video-policy';
+import {validatePlacements} from '@/lib/video-placement';
+import {seedLegacyCatalog,startCatalogImport,checkCatalogImport} from '@/lib/catalog-import';
 const str=(max=200)=>z.string().trim().max(max);
 const email=z.string().trim().email().max(200).transform(v=>v.toLowerCase());
 const product=z.enum(['spot','impossible','avatar','universe','spot-monthly','avatar-monthly','universe-monthly','unsure']);
@@ -20,7 +22,8 @@ export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}
   let query=client.from('leads').select('*');if(m.role==='production')query=query.eq('stage','Won');else if(m.role==='sales')query=query.or(`owner_email.eq.${m.email},origin_rep.eq.${m.rep_code}`);
   const [leads,team,videos,settings]=await Promise.all([result(query.order('updated_at',{ascending:false}).limit(500)),result(client.from('members').select('email,name,role,rep_code,active').order('name')),m.role==='sales'?Promise.resolve([]):result(client.from('videos').select('*').order('created_at',{ascending:false}).limit(500)),result<any[]>(client.from('settings').select('*'))]);
   const shareFilms=await getPublicFilms();
-  return {member:m,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:readyIntegrations()};
+  const imports=m.role==='admin'?await result(client.from('video_imports').select('video_id,state,error')):[];
+  return {member:m,imports,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:readyIntegrations()};
  }
  if(p[0]==='leads'&&p[1]){const lead=await requireLead(p[1],m);const [activities,intake]=await Promise.all([result(client.from('activities').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(100)),result<any>(client.from('intakes').select('answers,status,updated_at').eq('lead_id',lead.id).maybeSingle())]);return {lead,activities,intake:intake?{...intake,answers:JSON.parse(intake.answers)}:null};}
  if(p[0]==='videos'&&p[1]&&p[2]==='play'){await requireMember(['admin','production']);const v=await video(p[1]);if(v.status!=='Ready')throw new HttpError(409,'This video is not ready to play yet.');if(v.provider==='stream'&&!v.published){const token=await streamRequest('/'+v.object_key+'/token','POST',{exp:Math.floor(Date.now()/1000)+3600});return {source:'https://iframe.videodelivery.net/'+token.token,provider:'stream'};}return {source:v.source,provider:v.provider};}
@@ -28,6 +31,14 @@ export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}
 });}
 export async function POST(req:Request,{params}:{params:Promise<{path:string[]}>}){return safe(async()=>{
  sameOrigin(req);const p=(await params).path,data=await body(req),m=await requireMember(),client=admin();
+ if(p[0]==='catalog-import'){
+  await requireMember(['admin']);
+  if(p[1]==='prepare'){await seedLegacyCatalog(m.email);return {ok:true};}
+  const id=str(80).parse(data.id);
+  if(p[1]==='start')return startCatalogImport(id);
+  if(p[1]==='check')return checkCatalogImport(id);
+  throw new HttpError(404,'Unknown import action.');
+ }
  if(p[0]==='members'){await requireMember(['admin']);const d=z.object({email,name:str(100).min(2),role:z.enum(['admin','sales','production'])}).parse(data);const exists=await result(client.from('members').select('email').eq('email',d.email).maybeSingle());if(exists)throw new HttpError(409,'This team member already exists.');await result(client.from('members').insert({...d,rep_code:'rtv-'+uuid().slice(0,8),active:1,created_at:now()}));return {ok:true};}
  if(p[0]==='leads'&&!p[1]){await requireMember(['admin','sales']);const d=z.object({company:str(160).min(2),name:str(120).min(2),email,phone:str(50).default(''),website:str(300).default(''),product:product.default('unsure'),notes:str(5000).default(''),source:str(100).default('Sales outreach')}).parse(data);const id=uuid();const {error}=await client.rpc('rtv_create_lead',{p_id:id,p_data:d,p_actor:m.email,p_rep:m.rep_code,p_stamp:now()});if(error?.code==='23505')throw new HttpError(409,'This contact already exists in the pipeline. Ask the studio owner to review it.');if(error)throw error;return {id};}
  if(p[0]==='leads'&&p[1]){
@@ -66,6 +77,15 @@ export async function POST(req:Request,{params}:{params:Promise<{path:string[]}>
 });}
 export async function PATCH(req:Request,{params}:{params:Promise<{path:string[]}>}){return safe(async()=>{
  sameOrigin(req);const m=await requireMember(),p=(await params).path,data=await body(req),client=admin();
+ if(p[0]==='placements'){
+  await requireMember(['admin','production']);
+  const id=str(80),channelMap=z.object({spot:id,impossible:id,avatar:id,universe:id});
+  const d=z.object({previous:z.string().max(20000),value:z.object({hero:z.array(id).length(6),examples:channelMap,openers:channelMap,order:z.array(id).max(500)})}).parse(data);
+  const error=validatePlacements(d.value,await getPublicFilms());if(error)throw new HttpError(400,error);
+  const changed=await result<{key:string}[]>(client.from('settings').update({value:JSON.stringify(d.value)}).eq('key','video_placements').eq('value',d.previous).select('key'));
+  if(!changed.length)throw new HttpError(409,'Placements changed in another window. Reload the workspace before saving.');
+  return {ok:true};
+ }
  if(p[0]==='leads'&&p[1]){await requireMember(['admin','sales']);const l=await requireLead(p[1],m);const d=z.object({stage:z.enum(stages),product,nextAction:str(1000),nextAt:str(50),ownerEmail:str(200)}).parse(data);if(d.stage==='Call booked'&&!l.calendar_event)throw new HttpError(400,'Record or schedule a confirmed call before choosing Call booked.');if(d.ownerEmail!==l.owner_email&&m.role!=='admin')throw new HttpError(403,'Only an administrator can reassign a lead.');if(d.ownerEmail){const owner=await result(client.from('members').select('email').eq('email',d.ownerEmail).eq('active',1).in('role',['admin','sales']).maybeSingle());if(!owner)throw new HttpError(400,'Choose an active sales owner.');}await result(client.rpc('rtv_update_lead',{p_id:l.id,p_changes:{stage:d.stage,product:d.product,next_action:d.nextAction,next_at:d.nextAt,owner_email:d.ownerEmail,updated_at:now()},p_actor:m.email,p_action:'Lead updated',p_detail:`${l.stage} → ${d.stage}; owner ${d.ownerEmail||'unassigned'}. Original attribution retained.`}));return {ok:true};}
  if(p[0]==='videos'&&p[1]){await requireMember(['admin','production']);const v=await video(p[1]);const d=z.object({title:str(180).min(2),product:z.enum(['spot','impossible','avatar','universe']),industry:str(100),tags:str(500),description:str(2000),placement:z.enum(['featured','gallery','none']),published:z.boolean(),consent:z.boolean(),share_enabled:z.boolean().default(false),show_cta:z.boolean().default(true)}).parse(data);if(d.share_enabled&&v.status!=='Ready')throw new HttpError(400,'Sharing requires a ready video.');if(d.published&&(!d.consent||v.status!=='Ready'))throw new HttpError(400,'Publishing requires a ready video and confirmed portfolio permission.');if(v.provider==='stream'&&Boolean(v.published)!==d.published)await streamRequest('/'+v.object_key,'POST',{requireSignedURLs:!d.published});await updateVideo(v.id,{...d,published:d.published?1:0,consent:d.consent?1:0,...(!d.share_enabled&&v.share_enabled?{share_key:newToken()}: {})});return {ok:true};}
  if(p[0]==='members'&&p[1]){await requireMember(['admin']);const d=z.object({role:z.enum(['admin','sales','production']),active:z.boolean()}).parse(data);const target=decodeURIComponent(p[1]);if(target===m.email&&(!d.active||d.role!=='admin'))throw new HttpError(400,'Another administrator must change your own access.');await result(client.from('members').update({role:d.role,active:d.active?1:0}).eq('email',target));return {ok:true};}
