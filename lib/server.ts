@@ -24,7 +24,7 @@ export async function getPublicFilms():Promise<Film[]>{
  try{
   const client=admin();
   const [rows,settings]=await Promise.all([
-   result<(Film&{status:string;published:number;consent:number})[]>(client.from('videos').select('id,title,product,industry,tags,description,provider,source,poster,placement,status,published,consent').order('created_at',{ascending:false})),
+   result<(Film&{status:string;published:number;consent:number;deleted_at:string|null})[]>(client.from('videos').select('id,title,product,industry,tags,description,provider,source,poster,placement,status,published,consent,deleted_at').order('created_at',{ascending:false})),
    result<{key:string;value:string}[]>(client.from('settings').select('key,value').in('key',['hide_legacy','video_placements']))
   ]);
   const values=Object.fromEntries(settings.map(r=>[r.key,r.value]));

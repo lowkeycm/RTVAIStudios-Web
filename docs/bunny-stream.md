@@ -61,3 +61,9 @@ Validation: 12 focused Node tests cover video access, signing, placement selecti
 - Temporary verification assignments were reset and saved. The original six hero films, channel examples/openers, and 13-film gallery order are restored.
 - Unauthenticated placement saves and catalog-import starts return 401. Public eligibility checks remain enforced; private films do not enter placement choices.
 - Functional release: `65835540744cc0c0e46e1dc51b2faeec3ad4a20a`, production deployment `dpl_2boHRUvPmUHM1Wxkn64Y8CHX4WM9`.
+
+## Production library playback and Trash
+
+Production cards have a labeled Preview video action. The studio player keeps Play/Pause and Stop controls visible, shows stream-loading feedback, and offers a direct retry when a browser blocks autoplay. Stream-authorization requests time out rather than leaving an indefinite blank player. A failed thumbnail uses the channel artwork; Refresh library retries thumbnails.
+
+Move to Trash is recoverable. It keeps the database record and source asset, disables publication and sharing, rotates the unlisted key, and blocks playback/poster/embed access even for staff until restored. Restore leaves the film private. A database constraint forbids publication or link sharing while trashed. Old catalog records stay present so their legacy versions cannot reappear. Production polling excludes trashed records. No Bunny or Supabase asset is permanently deleted.

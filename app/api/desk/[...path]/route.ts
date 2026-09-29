@@ -12,8 +12,8 @@ const email=z.string().trim().email().max(200).transform(v=>v.toLowerCase());
 const product=z.enum(['spot','impossible','avatar','universe','spot-monthly','avatar-monthly','universe-monthly','unsure']);
 const bucket='rtv-production';
 const videoSchema=z.object({title:str(180).min(2,'Please add a video title.'),product:z.enum(['spot','impossible','avatar','universe']),industry:str(100).default(''),tags:str(500).default(''),description:str(2000).default(''),placement:z.enum(['featured','gallery','none']).default('gallery'),size:z.number().int().positive().max(5000000000),contentType:z.enum(['video/mp4','video/webm','video/quicktime']).default('video/mp4')});
-async function video(id:string){const v=await result<any>(admin().from('videos').select('*').eq('id',id).maybeSingle());if(!v)throw new HttpError(404,'Video not found.');return v;}
-async function updateVideo(id:string,values:any){return result(admin().from('videos').update({...values,updated_at:now()}).eq('id',id));}
+async function video(id:string){const v=await result<any>(admin().from('videos').select('*').eq('id',id).is('deleted_at',null).maybeSingle());if(!v)throw new HttpError(404,'Video not found.');return v;}
+async function updateVideo(id:string,values:any){return result(admin().from('videos').update({...values,updated_at:now()}).eq('id',id).is('deleted_at',null));}
 export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}){return safe(async()=>{
  const p=(await params).path;
  if(p[0]==='session'){const user=await getStudioUser();const m=user?await currentMember():null;return {user:user?{email:user.email,name:user.displayName}:null,member:m,canSetup:false};}
@@ -49,6 +49,16 @@ export async function POST(req:Request,{params}:{params:Promise<{path:string[]}>
  }
  if(p[0]==='videos'){
   await requireMember(['admin','production']);
+  if(p[1]&&p[2]==='trash'){
+   await video(p[1]);
+   await updateVideo(p[1],{deleted_at:now(),published:0,share_enabled:false,share_key:newToken()});
+   return {ok:true};
+  }
+  if(p[1]&&p[2]==='restore'){
+   const restored=await result<{id:string}[]>(client.from('videos').update({deleted_at:null,published:0,share_enabled:false,updated_at:now()}).eq('id',p[1]).not('deleted_at','is',null).select('id'));
+   if(!restored.length)throw new HttpError(404,'This video is not in Trash.');
+   return {ok:true};
+  }
   if(p[1]&&p[2]==='upload-ticket'){const v=await video(p[1]);if(v.provider!=='bunny'||v.status==='Ready')throw new HttpError(409,'This video does not need an upload.');return {id:v.id,provider:'bunny',...bunnyUploadTicket(v.object_key)};}
   if(p[1]&&p[2]==='refresh'){const v=await video(p[1]);if(v.provider==='bunny'){const r=await getBunnyStatus(v.object_key);await updateVideo(v.id,{status:r.status,...(r.status!=='Ready'?{published:0,share_enabled:false}:{}),poster:r.status==='Ready'?'/api/video-poster/'+v.id:v.poster});return r;}if(v.provider==='stream'){const r=await streamRequest('/'+v.object_key);const status=r.readyToStream?'Ready':r.status?.state==='error'?'Processing failed':'Processing';await updateVideo(v.id,{status});return {status};}
    if(v.provider==='supabase'){

@@ -46,7 +46,7 @@ export function validatePlacements(value:VideoPlacements, films:PlacedFilm[]):st
   return null;
 }
 
-export function publicCatalog<T extends PlacedFilm & {status:string;published:number;consent:number}>(records:T[], legacy:PlacedFilm[], hideLegacy:boolean){
+export function publicCatalog<T extends PlacedFilm & {status:string;published:number;consent:number;deleted_at?:string|null}>(records:T[], legacy:PlacedFilm[], hideLegacy:boolean){
   const overridden=new Set(records.map(f=>f.id));
-  return [...records.filter(f=>f.status==='Ready'&&!!f.published&&!!f.consent&&f.placement!=='none'),...(hideLegacy?[]:legacy.filter(f=>!overridden.has(f.id)))];
+  return [...records.filter(f=>!f.deleted_at&&f.status==='Ready'&&!!f.published&&!!f.consent&&f.placement!=='none'),...(hideLegacy?[]:legacy.filter(f=>!overridden.has(f.id)))];
 }

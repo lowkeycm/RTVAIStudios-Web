@@ -16,7 +16,7 @@ function createMediaController(film?: Pick<Film,'id'|'provider'|'source'>) {
       if (!video || !film || disposed) throw new Error('Video unavailable.');
       if (film.provider !== 'bunny' || loaded) return;
       if (!loading) loading = (async () => {
-        const response = await fetch(film.source, {cache: 'no-store'});
+        const response = await fetch(film.source, {cache: 'no-store', signal: AbortSignal.timeout(20000)});
         const data = await response.json();
         if (!response.ok || !data.url) throw new Error(data.error || 'Video unavailable.');
         if (disposed) return;

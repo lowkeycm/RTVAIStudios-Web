@@ -34,6 +34,18 @@ test('public playback requires permission and completed processing', () => {
   }
 });
 
+test('trashed films cannot be played by any role or shared, even with stale visibility fields', () => {
+  const video={...privateVideo,published:1,consent:1,share_enabled:true,deleted_at:'2026-09-29T23:45:00Z'};
+  for(const role of [undefined,'sales','production','admin']){
+    assert.equal(canWatchVideo(video,video.id,role),false);
+    assert.equal(canWatchVideo(video,video.share_key,role),false);
+  }
+  assert.equal(videoSharePath(video),null);
+  const restored={...video,deleted_at:null,published:0,share_enabled:false};
+  assert.equal(canWatchVideo(restored,restored.id),false);
+  assert.equal(canWatchVideo(restored,restored.id,'production'),true);
+});
+
 test('directory signing authenticates relative HLS segments and restricts scope to one video', () => {
   const id='01234567-0123-4123-8123-012345678901', expires=2000000000;
   const url=new URL(bunnySignedUrl('test.b-cdn.net','test-key',id,'playlist.m3u8',expires));

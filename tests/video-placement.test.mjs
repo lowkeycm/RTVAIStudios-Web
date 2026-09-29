@@ -34,6 +34,7 @@ test('migrated records replace legacy entries; hiding a record never resurrects 
  assert.equal(publicCatalog([row],films,false).filter(f=>f.id==='a').length,1);
  assert.equal(publicCatalog([{...row,published:0}],films,false).some(f=>f.id==='a'),false);
  assert.equal(publicCatalog([{...row,placement:'none'}],films,false).some(f=>f.id==='a'),false);
+ assert.equal(publicCatalog([{...row,deleted_at:'2026-09-29T23:45:00Z'}],films,false).some(f=>f.id==='a'),false);
  assert.equal(publicCatalog([{...row,consent:0}],films,true).length,0);
  assert.equal(defaultPlacements().hero.length,6);
 });
