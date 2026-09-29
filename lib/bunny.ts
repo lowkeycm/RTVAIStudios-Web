@@ -8,12 +8,19 @@ export function bunnyConfigured() {
 
 export async function bunnyRequest(path: string, method = 'GET', payload?: unknown) {
   if (!bunnyConfigured()) throw new HttpError(409, 'Bunny Stream setup is not complete yet.');
-  const response = await fetch(`https://video.bunnycdn.com/library/${runtime.BUNNY_STREAM_LIBRARY_ID}/videos${path}`, {
+  const response = await fetch(`https://video.bunnycdn.com/library/${runtime.BUNNY_STREAM_LIBRARY_ID!.trim()}/videos${path}`, {
     method, cache: 'no-store', signal: AbortSignal.timeout(20000),
-    headers: {AccessKey: runtime.BUNNY_STREAM_API_KEY!, 'Content-Type': 'application/json', Accept: 'application/json'},
+    headers: {AccessKey: runtime.BUNNY_STREAM_API_KEY!.trim(), 'Content-Type': 'application/json', Accept: 'application/json'},
     body: payload === undefined ? undefined : JSON.stringify(payload),
   });
-  if (!response.ok) throw new HttpError(502, 'Bunny could not complete this request. Check the connection and try again.');
+  if (!response.ok) {
+    // Log only the status: provider response bodies may contain account details.
+    console.error('Bunny Stream request rejected:', response.status);
+    if (response.status === 401 || response.status === 403) throw new HttpError(409, 'Bunny rejected the upload API key. Ask the studio administrator to check the library API key in Vercel.');
+    if (response.status === 404) throw new HttpError(409, 'The Bunny video library or video was not found. Check the library connection.');
+    if (response.status === 429) throw new HttpError(429, 'Bunny is receiving too many requests. Wait a moment, then retry.');
+    throw new HttpError(502, 'Bunny could not complete this request. Check the connection and try again.');
+  }
   return response.json();
 }
 
@@ -23,9 +30,9 @@ export function bunnyUploadTicket(videoId: string) {
   return {
     endpoint: 'https://video.bunnycdn.com/tusupload',
     headers: {
-      AuthorizationSignature: bunnyUploadSignature(runtime.BUNNY_STREAM_LIBRARY_ID!, runtime.BUNNY_STREAM_API_KEY!, expires, videoId),
+      AuthorizationSignature: bunnyUploadSignature(runtime.BUNNY_STREAM_LIBRARY_ID!.trim(), runtime.BUNNY_STREAM_API_KEY!.trim(), expires, videoId),
       AuthorizationExpire: String(expires),
-      LibraryId: runtime.BUNNY_STREAM_LIBRARY_ID!,
+      LibraryId: runtime.BUNNY_STREAM_LIBRARY_ID!.trim(),
       VideoId: videoId,
     },
   };
