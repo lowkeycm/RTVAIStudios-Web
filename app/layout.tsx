@@ -4,6 +4,7 @@ import "./cinema.css";
 import "./studio-refinements.css";
 import "./cast-production.css";
 import "./contact-cta.css";
+import "./video-placements.css";
 
 export const metadata: Metadata = {
   title: { default: "RTV AI Studios — Stories without limits", template: "%s | RTV AI Studios" },

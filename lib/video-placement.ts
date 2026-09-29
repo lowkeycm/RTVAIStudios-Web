@@ -4,7 +4,7 @@ export type VideoPlacements = {hero: string[]; examples: Record<VideoType,string
 export type PlacedFilm = {id:string; product:string; placement:string};
 const curatedHero = ['rtv-bang','rtv-impossible','rtv-laced-01','rtv-brand','rtv-heritage-coaches','rtv-santa-director'];
 export function defaultPlacements(): VideoPlacements {
-  return {hero:[...curatedHero],examples:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},openers:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},order:[]};
+  return {hero:[...curatedHero],examples:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},openers:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},order:['rtv-impossible','rtv-brand','rtv-laced-01','rtv-laced-02','rtv-laced-03','rtv-boring-epic','rtv-bang','rtv-santa-director','rtv-heritage-coaches','rtv-heritage-fees','rtv-heritage-returns','rtv-deathcast','rtv-horus-seth']};
 }
 export function parsePlacements(raw?: string): VideoPlacements {
   const fallback=defaultPlacements();
