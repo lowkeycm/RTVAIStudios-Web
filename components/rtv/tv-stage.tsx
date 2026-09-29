@@ -2,6 +2,7 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {Play,Pause} from 'lucide-react';
 import {channels} from '@/lib/catalog';
+import {useVideoMedia} from './use-video-media';
 import {type Playback,type MediaHandle} from './playback';
 
 type Display={label?:string;root:string;screen:string;render:string;glb?:string;width:number;height:number;corners:number[][];widthMeters?:number;heightMeters?:number;knobs?:{mesh:string;pixelCenter:number[];hitRadiusPx:number}[]};
@@ -20,15 +21,16 @@ function loadStream(){return streamSDK??=new Promise<void>((resolve,reject)=>{if
 function ScreenMedia({player}:{player:Playback}){
  const picture=useRef<HTMLDivElement>(null),video=useRef<HTMLVideoElement>(null),frame=useRef<HTMLIFrameElement>(null),latest=useRef(player);latest.current=player;
  const f=player.film,c=channels.find(c=>c.id===player.channel)!;
+ const media=useVideoMedia(video,f);
  useEffect(()=>{if(!f)return;let cancelled=false;let cleanup=()=>{};
- if(f.provider!=='stream'){player.bind(video.current,picture.current);if(video.current&&video.current.readyState>=1)latest.current.events.onLoadedMetadata();return()=>player.bind(null,null);}
+ if(f.provider!=='stream'){player.bind(media,picture.current);if(video.current&&video.current.readyState>=1)latest.current.events.onLoadedMetadata();return()=>player.bind(null,null);}
  loadStream().then(()=>{if(cancelled||!frame.current)return;const p=(window as any).Stream(frame.current) as MediaHandle;p.muted=latest.current.muted;p.volume=latest.current.volume;latest.current.bind(p,picture.current);
  const entries=[['play','onPlay'],['pause','onPause'],['timeupdate','onTimeUpdate'],['volumechange','onVolumeChange'],['ended','onEnded'],['error','onError'],['loadedmetadata','onLoadedMetadata'],['canplay','onCanPlay']] as const;
  const listeners=entries.map(([event,key])=>{const handler=()=>latest.current.events[key]();p.addEventListener(event,handler);return [event,handler] as const;});cleanup=()=>{p.pause();listeners.forEach(([e,h])=>p.removeEventListener(e,h));};}).catch(()=>latest.current.events.onError());
- return()=>{cancelled=true;cleanup();player.bind(null,null);};},[f?.id,player.bind]);
- useEffect(()=>{if(!player.powered)video.current?.pause();},[player.powered]);
+ return()=>{cancelled=true;cleanup();player.bind(null,null);};},[f?.id,player.bind,media]);
+ useEffect(()=>{if(!player.powered)media.pause();},[player.powered,media]);
  return <div ref={picture} className={'tv-picture '+(!player.powered?'tv-off':'')}>
-  {f?(f.provider==='stream'?<iframe ref={frame} key={f.id} title={f.title} src={f.source+(f.source.includes('?')?'&':'?')+'controls=false'} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>:<video ref={video} key={f.id} src={f.source} poster={f.poster} playsInline preload="metadata" {...player.events}/>):<div className="tv-testcard"><span className="testcard-station">RTV / CH {c.number}</span><strong>{c.name}</strong><span className="testcard-rule"/><p>No films on this channel yet.</p><small>Explore another channel.</small></div>}
+  {f?(f.provider==='stream'?<iframe ref={frame} key={f.id} title={f.title} src={f.source+(f.source.includes('?')?'&':'?')+'controls=false'} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen/>:<video ref={video} key={f.id} src={f.provider==='bunny'?undefined:f.source} poster={f.poster} playsInline preload="none" {...player.events}/>):<div className="tv-testcard"><span className="testcard-station">RTV / CH {c.number}</span><strong>{c.name}</strong><span className="testcard-rule"/><p>No films on this channel yet.</p><small>Explore another channel.</small></div>}
   {f&&<button className="tv-screen-action" aria-label={player.playing?'Pause '+f.title:'Play '+f.title} aria-pressed={player.playing} onClick={player.toggle} onKeyDown={e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();player.seek(Math.max(0,Math.min(player.duration,player.progress+(e.key==='ArrowRight'?10:-10))));}}}><span>{player.playing?<Pause size={60}/>:<Play size={60}/>}</span></button>}
   {!player.powered&&<div className="tv-standby">RTV<span>STANDBY</span></div>}
   {player.tuning&&<div className="tv-tuning" aria-hidden="true"/>}
