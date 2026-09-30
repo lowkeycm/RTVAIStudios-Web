@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultPlacements,heroFilms,orderFilms,publicCatalog,typeExample,withOpener,validatePlacements} from '../lib/video-placement.ts';
+import {defaultPlacements,heroFilms,orderFilms,publicCatalog,parsePlacements,typeExample,withOpener,validatePlacements} from '../lib/video-placement.ts';
 const films=[{id:'a',product:'spot',placement:'gallery'},{id:'b',product:'spot',placement:'featured'},{id:'c',product:'avatar',placement:'gallery'},{id:'d',product:'universe',placement:'gallery'},{id:'e',product:'impossible',placement:'gallery'},{id:'f',product:'spot',placement:'gallery'}];
 const empty=()=>({hero:['','','','','',''],examples:{spot:'',impossible:'',avatar:'',universe:''},openers:{spot:'',impossible:'',avatar:'',universe:''},order:[]});
 test('explicit hero slots are preserved and automatic slots never steal a later assignment',()=>{
@@ -37,4 +37,15 @@ test('migrated records replace legacy entries; hiding a record never resurrects 
  assert.equal(publicCatalog([{...row,deleted_at:'2026-09-29T23:45:00Z'}],films,false).some(f=>f.id==='a'),false);
  assert.equal(publicCatalog([{...row,consent:0}],films,true).length,0);
  assert.equal(defaultPlacements().hero.length,6);
+});
+
+test('legacy placements preserve their existing previews and new toggles belong to slots',()=>{
+ const old={...empty(),hero:['rtv-bang','replacement','','','','']};
+ const parsed=parsePlacements(JSON.stringify(old));
+ assert.deepEqual(parsed.heroAutoplay,[true,false,false,false,false,false]);
+ parsed.heroAutoplay[1]=true;parsed.hero[1]='another-film';
+ assert.deepEqual(parsePlacements(JSON.stringify(parsed)).heroAutoplay,[true,true,false,false,false,false]);
+ parsed.heroAutoplay=Array(6).fill(false);
+ assert.deepEqual(parsePlacements(JSON.stringify(parsed)).heroAutoplay,Array(6).fill(false));
+ assert.deepEqual(parsePlacements(JSON.stringify({...old,heroAutoplay:['false']})).heroAutoplay,[true,false,false,false,false,false]);
 });

@@ -11,7 +11,7 @@ export function Home({films,placements}:{films:Film[];placements:VideoPlacements
  return <MotionPage><Attribution/><Nav/><main>
   <section className="broadcast-hero" data-scroll-scene><div className="broadcast-topline"><span className="eyebrow">RTV AI STUDIOS / CREATIVE PRODUCTION</span><a href="/work">Watch the films <ArrowUpRight size={15}/></a></div>
    <div className="broadcast-heading"><h1>Your brand.<br/><em>Impossible to ignore.</em></h1><div><p>AI-powered commercials, characters, and worlds. Built around what makes your business different.</p><a className="button light" href="#formats">Find your video type <ArrowDown size={18}/></a></div></div>
-   <VideoWall films={wall.length?wall:films.slice(0,6)}/>
+   <VideoWall films={wall.length?wall:films.slice(0,6)} autoplay={placements.heroAutoplay}/>
   </section>
   <FormatPicker films={films} examples={placements.examples}/>
   <div className="film-library-link studio-surface" data-scroll-scene><span className="eyebrow">THE WORK / EXPLORE THE FILMS</span><a className="button light" href="/work">Browse all films <ArrowUpRight size={19}/></a></div>

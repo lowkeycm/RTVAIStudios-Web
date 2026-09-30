@@ -2,10 +2,10 @@
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {Pause,Play,X} from 'lucide-react';
 import type {Film} from './chrome';
-import {AmbientFilm,InlineFilm} from './inline-film';
+import {InlineFilm} from './inline-film';
+import {HeroPreview} from './hero-preview';
 import {useSiteMotion} from './motion-page';
-const previews:Record<string,string>={'rtv-bang':'/studio/previews/bang.mp4','rtv-impossible':'/studio/previews/impossible.mp4'};
-export function VideoWall({films}:{films:Film[]}){
+export function VideoWall({films,autoplay}:{films:Film[];autoplay:boolean[]}){
  const [selected,setSelected]=useState<string|null>(null),{paused,toggle}=useSiteMotion();
  const buttons=useRef<Record<string,HTMLButtonElement|null>>({}),closeButton=useRef<HTMLButtonElement>(null);
  const close=()=>{const id=selected;window.dispatchEvent(new CustomEvent('rtv:watch-film',{detail:'wall-close'}));setSelected(null);if(id)requestAnimationFrame(()=>buttons.current[id]?.focus({preventScroll:true}));};
@@ -16,7 +16,7 @@ export function VideoWall({films}:{films:Film[]}){
   <div className="screen-installation" aria-label="Choose a film to watch">
    {films.slice(0,6).map((film,index)=><div className={'installation-screen screen-position-'+index+(selected===film.id?' screen-selected':'')+(selected&&selected!==film.id?' screen-recedes':'')} key={film.id} style={{'--screen-index':index} as CSSProperties} inert={selected&&selected!==film.id?true:undefined}>
     {selected===film.id?<InlineFilm film={film} autoStart/>:<>
-     {previews[film.id]?<AmbientFilm film={{...film,provider:'url',source:previews[film.id]}} suspended={!!selected}/>:<img src={film.poster} alt="" loading={index<3?'eager':'lazy'}/>}
+     {autoplay[index]?<HeroPreview film={film} suspended={!!selected}/>:<img src={film.poster} alt="" loading={index<3?'eager':'lazy'}/>}
      <button ref={el=>{buttons.current[film.id]=el;}} className="installation-play" aria-label={'Expand and play '+film.title} onClick={e=>{e.stopPropagation();setSelected(film.id);}}><span className="installation-number">{String(index+1).padStart(2,'0')}</span><span className="installation-label">{film.title}<span><Play size={16} fill="currentColor"/></span></span></button>
     </>}
    </div>)}

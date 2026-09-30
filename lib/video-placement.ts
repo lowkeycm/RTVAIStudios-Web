@@ -1,10 +1,10 @@
 export const videoTypes = ['spot', 'impossible', 'avatar', 'universe'] as const;
 export type VideoType = typeof videoTypes[number];
-export type VideoPlacements = {hero: string[]; examples: Record<VideoType,string>; openers: Record<VideoType,string>; order: string[]};
+export type VideoPlacements = {hero: string[]; heroAutoplay: boolean[]; examples: Record<VideoType,string>; openers: Record<VideoType,string>; order: string[]};
 export type PlacedFilm = {id:string; product:string; placement:string};
 const curatedHero = ['rtv-bang','rtv-impossible','rtv-laced-01','rtv-brand','rtv-heritage-coaches','rtv-santa-director'];
 export function defaultPlacements(): VideoPlacements {
-  return {hero:[...curatedHero],examples:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},openers:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},order:['rtv-impossible','rtv-brand','rtv-laced-01','rtv-laced-02','rtv-laced-03','rtv-boring-epic','rtv-bang','rtv-santa-director','rtv-heritage-coaches','rtv-heritage-fees','rtv-heritage-returns','rtv-deathcast','rtv-horus-seth']};
+  return {hero:[...curatedHero],heroAutoplay:[true,true,false,false,false,false],examples:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},openers:{spot:'rtv-bang',impossible:'rtv-impossible',avatar:'rtv-brand',universe:'rtv-laced-01'},order:['rtv-impossible','rtv-brand','rtv-laced-01','rtv-laced-02','rtv-laced-03','rtv-boring-epic','rtv-bang','rtv-santa-director','rtv-heritage-coaches','rtv-heritage-fees','rtv-heritage-returns','rtv-deathcast','rtv-horus-seth']};
 }
 export function parsePlacements(raw?: string): VideoPlacements {
   const fallback=defaultPlacements();
@@ -12,7 +12,8 @@ export function parsePlacements(raw?: string): VideoPlacements {
     const value=JSON.parse(raw||'null');
     if(!value || !Array.isArray(value.hero) || value.hero.length!==6 || !value.hero.every((id:unknown)=>typeof id==='string') || !Array.isArray(value.order) || !value.order.every((id:unknown)=>typeof id==='string'))return fallback;
     for(const group of ['examples','openers'])if(!value[group] || !videoTypes.every(type=>typeof value[group][type]==='string'))return fallback;
-    return {hero:value.hero,examples:value.examples,openers:value.openers,order:value.order};
+    const heroAutoplay=Array.isArray(value.heroAutoplay)&&value.heroAutoplay.length===6&&value.heroAutoplay.every((enabled:unknown)=>typeof enabled==='boolean')?value.heroAutoplay:value.hero.map((id:string)=>['rtv-bang','rtv-impossible'].includes(id));
+    return {hero:value.hero,heroAutoplay,examples:value.examples,openers:value.openers,order:value.order};
   }catch{return fallback;}
 }
 export function orderFilms<T extends PlacedFilm>(films:T[], order:string[]):T[]{

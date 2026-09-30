@@ -90,7 +90,7 @@ export async function PATCH(req:Request,{params}:{params:Promise<{path:string[]}
  if(p[0]==='placements'){
   await requireMember(['admin','production']);
   const id=str(80),channelMap=z.object({spot:id,impossible:id,avatar:id,universe:id});
-  const d=z.object({previous:z.string().max(20000),value:z.object({hero:z.array(id).length(6),examples:channelMap,openers:channelMap,order:z.array(id).max(500)})}).parse(data);
+  const d=z.object({previous:z.string().max(20000),value:z.object({hero:z.array(id).length(6),heroAutoplay:z.array(z.boolean()).length(6),examples:channelMap,openers:channelMap,order:z.array(id).max(500)})}).parse(data);
   const error=validatePlacements(d.value,await getPublicFilms());if(error)throw new HttpError(400,error);
   const changed=await result<{key:string}[]>(client.from('settings').update({value:JSON.stringify(d.value)}).eq('key','video_placements').eq('value',d.previous).select('key'));
   if(!changed.length)throw new HttpError(409,'Placements changed in another window. Reload the workspace before saving.');
