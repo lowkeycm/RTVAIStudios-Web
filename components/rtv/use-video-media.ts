@@ -4,7 +4,7 @@ import type Hls from 'hls.js';
 import type {Film} from './chrome';
 import type {MediaHandle} from './playback';
 
-// The signed stream and HLS runtime are requested only after an explicit play.
+// Stream/runtime loading starts on play: a click, or an enabled visible hero preview.
 function createMediaController(film?: Pick<Film,'id'|'provider'|'source'>, preview = false) {
     let videoElement: HTMLVideoElement | null = null;
     const getVideo = () => videoElement;
@@ -37,16 +37,17 @@ function createMediaController(film?: Pick<Film,'id'|'provider'|'source'>, previ
           hls!.on(HlsPlayer.Events.MANIFEST_PARSED, () => {clearTimeout(timer); if(preview&&hls){const level=hls.levels.reduce((best,level,index)=>level.height<=360?index:best,0);hls.startLevel=level;hls.autoLevelCapping=level;} loaded = true; resolve();});
           hls!.on(HlsPlayer.Events.ERROR, (_event, data) => {
             if (!data.fatal) return;
-            clearTimeout(timer); loaded = false;
+            clearTimeout(timer); loaded = false; previewBuffered = false;
             hls?.destroy(); hls = null;
             if (!disposed) video.dispatchEvent(new Event('error'));
             reject(new Error('Video could not load. Try again.'));
           });
-          if(preview)hls!.on(HlsPlayer.Events.FRAG_BUFFERED,()=>{if(video.buffered.length&&video.buffered.end(video.buffered.length-1)>=8){previewBuffered=true;hls?.stopLoad();}});
+          // Keep a little media past the loop boundary so playback reaches the seek event.
+          if(preview)hls!.on(HlsPlayer.Events.FRAG_BUFFERED,()=>{if(video.buffered.length&&video.buffered.end(video.buffered.length-1)>=10){previewBuffered=true;hls?.stopLoad();}});
           hls!.loadSource(data.url);
           hls!.attachMedia(video);
         });
-      })().catch(error => {hls?.destroy(); hls = null; loaded = false; throw error;}).finally(() => {loading = null;});
+      })().catch(error => {hls?.destroy(); hls = null; loaded = false; previewBuffered = false; throw error;}).finally(() => {loading = null;});
       await loading;
     };
     const handle: MediaHandle = {
