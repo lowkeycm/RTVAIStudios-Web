@@ -5,7 +5,9 @@ import {Check, Copy} from 'lucide-react';
 export function ShareLink({path, referral, label = 'Copy share link'}: {path: string; referral?: string; label?: string}) {
   const [copied, setCopied] = useState(false), [fallback, setFallback] = useState('');
   async function copy() {
-    const url = new URL(path, location.origin);
+    // Copied client links must use the domain approved for video delivery,
+    // even when this component is opened from a deployment preview.
+    const url = new URL(path, 'https://www.rtvaistudios.com');
     if (referral) url.searchParams.set('ref', referral);
     try {await navigator.clipboard.writeText(url.toString()); setCopied(true); setTimeout(() => setCopied(false), 2500);}
     catch {setFallback(url.toString());}

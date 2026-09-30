@@ -27,6 +27,8 @@ Anyone possessing an enabled unlisted URL can watch it. These links are not pass
 
 ## Playback and compatibility
 
+The three stable Vercel production aliases redirect to `https://www.rtvaistudios.com`, preserving the requested path and query. Bunny intentionally accepts only the custom studio domains as referrers. Before this redirect, a watch page on `rtvai-studios-web.vercel.app` reproduced the owner's exact playback failure while the same video played on the custom domain. Copy share link now always uses the canonical domain. Browser sessions are host-specific; someone previously signed in only on a Vercel alias may need to sign in once on the custom domain. Branch previews and local development are not redirected. No CDN access restrictions were relaxed.
+
 Bunny streams use native HLS on supported browsers and lazy-loaded hls.js elsewhere. Stream authorization and video segments are requested after play. hls.js limits its buffer and stops loading on pause; video playback pauses offscreen or when the tab is hidden. Bunny ambient tiles use posters. Existing short local motion previews and existing Supabase videos remain intact.
 
 The database migration adds share controls without modifying legacy objects or URLs. New uploads prefer Bunny when all four variables are present; the existing fallback remains available before setup is complete.
