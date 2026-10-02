@@ -1,4 +1,7 @@
 import {z} from 'zod';
+import {customerEmailConfigured,sendCustomerEmail} from '@/lib/customer-email';
+import {prepareClientDownload} from '@/lib/client-delivery';
+import {briefMessage,deliveryMessage} from '@/lib/customer-messages';
 import {memberChanges,memberEditError,sendMemberSetupEmail} from '@/lib/team-management';
 import {getStudioUser} from '@/lib/supabase/server';
 import {admin,result,currentMember,requireMember,requireLead,safe,body,sameOrigin,now,uuid,hash,newToken,audit,HttpError,readyIntegrations,getPublicFilms,rateLimit} from '@/lib/server';
@@ -24,9 +27,9 @@ export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}
   const [leads,team,videos,settings]=await Promise.all([result(query.order('updated_at',{ascending:false}).limit(500)),result(client.from('members').select('email,name,role,rep_code,active').order('name')),m.role==='sales'?Promise.resolve([]):result(client.from('videos').select('*').order('created_at',{ascending:false}).limit(500)),result<any[]>(client.from('settings').select('*'))]);
   const shareFilms=await getPublicFilms();
   const imports=m.role==='admin'?await result(client.from('video_imports').select('video_id,state,error')):[];
-  return {member:m,imports,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:readyIntegrations()};
+  return {member:m,imports,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:{...readyIntegrations(),email:customerEmailConfigured()}};
  }
- if(p[0]==='leads'&&p[1]){const lead=await requireLead(p[1],m);const [activities,intake]=await Promise.all([result(client.from('activities').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(100)),result<any>(client.from('intakes').select('answers,status,updated_at').eq('lead_id',lead.id).maybeSingle())]);return {lead,activities,intake:intake?{...intake,answers:JSON.parse(intake.answers)}:null};}
+ if(p[0]==='leads'&&p[1]){const lead=await requireLead(p[1],m);const [activities,intake,deliveries]=await Promise.all([result(client.from('activities').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(100)),result<any>(client.from('intakes').select('answers,status,updated_at').eq('lead_id',lead.id).maybeSingle()),result(client.from('client_deliveries').select('id,access_key,enabled,download_label,video_id,created_at,videos(title,status,deleted_at)').eq('lead_id',lead.id).order('created_at',{ascending:false}))]);return {lead,activities,deliveries,intake:intake?{...intake,answers:JSON.parse(intake.answers)}:null};}
  if(p[0]==='videos'&&p[1]&&p[2]==='play'){await requireMember(['admin','production']);const v=await video(p[1]);if(v.status!=='Ready')throw new HttpError(409,'This video is not ready to play yet.');if(v.provider==='stream'&&!v.published){const token=await streamRequest('/'+v.object_key+'/token','POST',{exp:Math.floor(Date.now()/1000)+3600});return {source:'https://iframe.videodelivery.net/'+token.token,provider:'stream'};}return {source:v.source,provider:v.provider};}
  throw new HttpError(404,'This page was not found.');
 });}
@@ -62,9 +65,44 @@ export async function POST(req:Request,{params}:{params:Promise<{path:string[]}>
   return {ok:true,invitationSent:invitation.sent,warning:invitation.error};
  }
  if(p[0]==='leads'&&!p[1]){await requireMember(['admin','sales']);const d=z.object({company:str(160).min(2),name:str(120).min(2),email,phone:str(50).default(''),website:str(300).default(''),product:product.default('unsure'),notes:str(5000).default(''),source:str(100).default('Sales outreach')}).parse(data);const id=uuid();const {error}=await client.rpc('rtv_create_lead',{p_id:id,p_data:d,p_actor:m.email,p_rep:m.rep_code,p_stamp:now()});if(error?.code==='23505')throw new HttpError(409,'This contact already exists in the pipeline. Ask the studio owner to review it.');if(error)throw error;return {id};}
+ if(p[0]==='leads'&&p[1]&&['delivery-prepare','delivery-email','delivery-disable'].includes(p[2])){
+  const lead=await requireLead(p[1],m);
+  if(p[2]==='delivery-prepare'){
+   await requireMember(['admin','production']);
+   const d=z.object({videoId:str(80).min(1),approved:z.literal(true)}).parse(data);
+   const film=await video(d.videoId);if(film.status!=='Ready')throw new HttpError(409,'Wait until video processing finishes.');
+   const download=await prepareClientDownload(film);
+   await result(client.rpc('rtv_prepare_delivery',{p_lead:lead.id,p_video:film.id,p_file:download.file,p_label:download.label,p_actor:m.email,p_stamp:now(),p_key:newToken()}));
+   return {ok:true};
+  }
+  const d=z.object({deliveryId:str(80).min(1),requestId:z.string().uuid().optional()}).parse(data);
+  const delivery=await result<any>(client.from('client_deliveries').select('*,videos(title,status,deleted_at)').eq('id',d.deliveryId).eq('lead_id',lead.id).maybeSingle());
+  if(!delivery)throw new HttpError(404,'This delivery was not found.');
+  if(p[2]==='delivery-disable'){
+   await requireMember(['admin','production']);
+   await result(client.from('client_deliveries').update({enabled:false,access_key:newToken()}).eq('id',delivery.id));
+   await audit(lead.id,m.email,'Delivery link withdrawn',delivery.videos?.title||'Video');return {ok:true};
+  }
+  if(!delivery.enabled||delivery.videos?.deleted_at||delivery.videos?.status!=='Ready')throw new HttpError(409,'This video is not available for delivery.');
+  if(!d.requestId)throw new HttpError(400,'A send request ID is required.');
+  await rateLimit(req,'customer-email',20);
+  const message=deliveryMessage(lead.name,delivery.videos.title,new URL('/watch/'+delivery.access_key,req.url).toString());
+  const sent=await sendCustomerEmail({to:lead.email,replyTo:m.email,...message,idempotencyKey:'delivery-'+delivery.id+'-'+d.requestId});
+  await audit(lead.id,m.email,'Finished video email accepted',lead.email+' · '+sent.id);return {ok:true};
+ }
  if(p[0]==='leads'&&p[1]){
   await requireMember(['admin','sales']);const l=await requireLead(p[1],m);
   if(p[2]==='note'){const note=str(5000).min(1).parse(data.note);await result(client.rpc('rtv_update_lead',{p_id:l.id,p_changes:{updated_at:now()},p_actor:m.email,p_action:'Note',p_detail:note}));return {ok:true};}
+  if(p[2]==='intake-email'){
+   const d=z.object({token:z.string().regex(/^[a-f0-9]{64}$/),requestId:z.string().uuid()}).parse(data);
+   await rateLimit(req,'customer-email',20);
+   const intake=await result(client.from('intakes').select('lead_id').eq('lead_id',l.id).eq('token_hash',await hash(d.token)).gt('expires_at',now()).maybeSingle());
+   if(!intake)throw new HttpError(409,'This brief link expired or was replaced. Create a new link before emailing it.');
+   const message=briefMessage(l.name,new URL('/intake/'+d.token,req.url).toString());
+   const sent=await sendCustomerEmail({to:l.email,replyTo:m.email,...message,idempotencyKey:'brief-'+l.id+'-'+d.requestId});
+   await audit(l.id,m.email,'Brief email accepted',l.email+' · '+sent.id);
+   return {ok:true};
+  }
   if(p[2]==='intake-link'){const token=newToken();await result(client.rpc('rtv_rotate_intake',{p_id:l.id,p_hash:await hash(token),p_expires:new Date(Date.now()+90*86400000).toISOString(),p_actor:m.email,p_stamp:now()}));return {url:'/intake/'+token};}
   if(p[2]==='calendar'){const d=z.object({start:z.string().datetime(),host:email,mode:z.enum(['google','manual']),eventUrl:z.string().max(1000).default('')}).parse(data);if(new Date(d.start).getTime()<Date.now())throw new HttpError(400,'Choose a future call time.');const host=await result(client.from('members').select('email').eq('email',d.host).eq('active',1).in('role',['admin','sales']).maybeSingle());if(!host)throw new HttpError(400,'Choose an active sales host.');let url=d.eventUrl;if(d.mode==='google'){const event=await bookGoogleCall(l,d.start,d.host);url=event.htmlLink;}else if(!/^https:\/\/(calendar\.google\.com|calendar\.app\.google|meet\.google\.com)\//.test(url))throw new HttpError(400,'Add the confirmed Google Calendar or Meet link.');await result(client.rpc('rtv_update_lead',{p_id:l.id,p_changes:{stage:'Call booked',preferred_time:d.start,calendar_event:url,updated_at:now()},p_actor:m.email,p_action:d.mode==='google'?'Google call scheduled':'Confirmed call recorded',p_detail:d.start+' · Host '+d.host}));return {ok:true,url};}
  }

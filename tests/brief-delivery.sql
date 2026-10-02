@@ -1,0 +1,31 @@
+begin;
+do $$
+declare lead text:=gen_random_uuid()::text; film text:=gen_random_uuid()::text; stamp text:=now()::text; r integer; caught boolean:=false; key_before text;
+begin
+ insert into public.leads(id,company,name,email,created_by,created_at,updated_at) values(lead,'Test only','Test only',lead||'@example.invalid','test',stamp,stamp);
+ insert into public.intakes(lead_id,token_hash,expires_at,updated_at) values(lead,'test-'||lead,(now()+interval '1 day')::text,stamp);
+ r:=public.rtv_save_brief(lead,'test-'||lead,'{"goal":"Saved goal"}','Draft',stamp,3,0,true);
+ if r<>1 or not exists(select 1 from public.intakes where lead_id=lead and current_step=3 and revision=1 and answers::jsonb->>'goal'='Saved goal') then raise exception 'Resume persistence failed'; end if;
+ if exists(select 1 from public.activities where lead_id=lead) then raise exception 'Autosave flooded activity'; end if;
+ begin perform public.rtv_save_brief(lead,'test-'||lead,'{}','Draft',stamp,0,0,true); exception when others then caught:=sqlerrm='brief_conflict'; end;
+ if not caught then raise exception 'Stale revision overwrote answers';end if;
+ perform public.rtv_rotate_intake(lead,'replacement-'||lead,(now()+interval '1 day')::text,'test',stamp);
+ if not exists(select 1 from public.intakes where lead_id=lead and current_step=3 and answers::jsonb->>'goal'='Saved goal') then raise exception 'Link replacement lost answers';end if;
+ caught:=false;
+ begin perform public.rtv_save_brief(lead,'test-'||lead,'{}','Draft',stamp,0,1,true); exception when others then caught:=sqlerrm='brief_conflict';end;
+ if not caught then raise exception 'Replaced link still works';end if;
+ perform public.rtv_save_brief(lead,'replacement-'||lead,'{"goal":"Saved goal","audience":"Audience","success":"Success"}','Submitted',stamp,5,1,false);
+ if not exists(select 1 from public.activities where lead_id=lead and action='Intake submitted') then raise exception 'Submission not recorded';end if;
+ insert into public.videos(id,title,product,provider,status,uploaded_by,created_at,updated_at) values(film,'Test final','spot','bunny','Ready','test',stamp,stamp);
+ perform public.rtv_prepare_delivery(lead,film,'play_1080p.mp4','1080p MP4','test',stamp,'delivery-'||film);
+ select access_key into key_before from public.client_deliveries where lead_id=lead;
+ perform public.rtv_prepare_delivery(lead,film,'play_1080p.mp4','1080p MP4','test',stamp,'unneeded-new-key');
+ if (select access_key from public.client_deliveries where lead_id=lead)<>key_before then raise exception 'Existing delivery link changed';end if;
+ update public.videos set deleted_at=stamp::timestamptz where id=film;
+ if exists(select 1 from public.client_deliveries where lead_id=lead and (enabled or access_key=key_before)) then raise exception 'Trash did not withdraw delivery';end if;
+ update public.videos set deleted_at=null where id=film;
+ if exists(select 1 from public.client_deliveries where lead_id=lead and enabled) then raise exception 'Restore resurrected private link';end if;
+ if has_table_privilege('anon','public.client_deliveries','SELECT') or has_table_privilege('authenticated','public.client_deliveries','SELECT') then raise exception 'Delivery keys are exposed';end if;
+ if has_function_privilege('anon','public.rtv_save_brief(text,text,text,text,text,integer,integer,boolean)','EXECUTE') then raise exception 'Public RPC exposed';end if;
+end $$;
+rollback;

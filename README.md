@@ -43,3 +43,13 @@ Vercel deployment protection is still enabled for non-custom domains. Supabase i
 ## Bunny Stream
 
 The upload and branded share-page integration is implemented. See [Bunny Stream setup and operations](docs/bunny-stream.md) for connection values, billing controls, the staff workflow, and activation verification. Existing video URLs remain unchanged.
+
+### Customer briefs and final delivery
+
+- Briefs autosave answers and the current step, with revision checks to prevent stale tabs overwriting newer work. The same private link resumes on any device; replacing a link preserves saved answers.
+- Customer records show a compact brief summary with a full modal viewer. Sales can create a private link, copy it, or preview an email to the lead's stored address.
+- Customer emails use `RESEND_API_KEY` (separate from Supabase Auth SMTP). `RESEND_FROM_EMAIL` is optional and defaults to `RTV AI Studios <studio@support.rtvaistudios.com>`. Replies go to the sending team member. Without the key, staff can open a prewritten email draft instead.
+- Production/admin prepares an approved finished video inside the customer record. The server verifies a Bunny MP4 exists before creating a private watch/download link. Sales can send prepared deliveries only for leads they can access.
+- Enable **MP4 Fallback** in the Bunny Stream library's Encoding settings before uploading deliverable videos. Older videos without MP4 fallback need a fresh upload. Download resolution is shown explicitly; the MP4 is an encoded deliverable, not an original master-file guarantee.
+- Delivery downloads stream through a server route with attachment and range headers. Withdrawn or trashed deliveries are inaccessible; restoring a video does not restore its old delivery link.
+- Verification: `node --test --test-isolation=none tests/*.test.mjs`; `tests/brief-delivery.sql` runs transactional database assertions and rolls back its fixtures.
