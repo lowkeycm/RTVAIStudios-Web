@@ -8,7 +8,7 @@ import {admin,result,currentMember,requireMember,requireLead,safe,body,sameOrigi
 import {streamRequest,streamUpload,bookGoogleCall} from '@/lib/providers';
 import {channels,stages} from '@/lib/catalog';
 import {createBunnyVideo,bunnyUploadTicket,getBunnyStatus} from '@/lib/bunny';
-import {videoSharePath} from '@/lib/video-policy';
+import {isPublicVideo,videoSharePath} from '@/lib/video-policy';
 import {validatePlacements} from '@/lib/video-placement';
 import {seedLegacyCatalog,startCatalogImport,checkCatalogImport} from '@/lib/catalog-import';
 const str=(max=200)=>z.string().trim().max(max);
@@ -25,9 +25,18 @@ export async function GET(req:Request,{params}:{params:Promise<{path:string[]}>}
  if(p[0]==='dashboard'){
   let query=client.from('leads').select('*');if(m.role==='production')query=query.eq('stage','Won');else if(m.role==='sales')query=query.or(`owner_email.eq.${m.email},origin_rep.eq.${m.rep_code}`);
   const [leads,team,videos,settings]=await Promise.all([result(query.order('updated_at',{ascending:false}).limit(500)),result(client.from('members').select('email,name,role,rep_code,active').order('name')),m.role==='sales'?Promise.resolve([]):result(client.from('videos').select('*').order('created_at',{ascending:false}).limit(500)),result<any[]>(client.from('settings').select('*'))]);
-  const shareFilms=await getPublicFilms();
+  const publicFilms=await getPublicFilms();
+  // Website placement and permission to share a link are independent.
+  const shareRows=m.role==='sales'?await result<any[]>(client.from('videos').select('id,title,product,industry,poster,provider,status,published,consent,share_enabled,share_key,deleted_at').is('deleted_at',null).eq('status','Ready').or('share_enabled.eq.true,and(published.eq.1,consent.eq.1)').order('created_at',{ascending:false}).limit(500)):videos as any[];
+  const shareFilms=shareRows.flatMap(v=>{
+   const path=videoSharePath(v);if(!path)return [];
+   const key=path.slice('/watch/'.length);
+   return [{id:v.id,title:v.title,product:v.product,industry:v.industry,poster:v.provider==='bunny'?'/api/video-poster/'+key:v.poster,share_path:path,published:isPublicVideo(v)}];
+  });
+  const sharedIds=new Set(shareFilms.map(v=>v.id));
+  shareFilms.push(...publicFilms.filter(v=>!sharedIds.has(v.id)).map(v=>({...v,share_path:'/watch/'+v.id,published:true})));
   const imports=m.role==='admin'?await result(client.from('video_imports').select('video_id,state,error')):[];
-  return {member:m,imports,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:{...readyIntegrations(),email:customerEmailConfigured()}};
+  return {member:m,imports,leads,members:team,videos:(videos as any[]).map(v=>({...v,share_path:videoSharePath(v)})),publicFilms,shareFilms,settings:Object.fromEntries(settings.map(r=>[r.key,r.value])),integrations:{...readyIntegrations(),email:customerEmailConfigured()}};
  }
  if(p[0]==='leads'&&p[1]){const lead=await requireLead(p[1],m);const [activities,intake,deliveries]=await Promise.all([result(client.from('activities').select('*').eq('lead_id',lead.id).order('created_at',{ascending:false}).limit(100)),result<any>(client.from('intakes').select('answers,status,updated_at').eq('lead_id',lead.id).maybeSingle()),result(client.from('client_deliveries').select('id,access_key,enabled,download_label,video_id,created_at,videos(title,status,deleted_at)').eq('lead_id',lead.id).order('created_at',{ascending:false}))]);return {lead,activities,deliveries,intake:intake?{...intake,answers:JSON.parse(intake.answers)}:null};}
  if(p[0]==='videos'&&p[1]&&p[2]==='play'){await requireMember(['admin','production']);const v=await video(p[1]);if(v.status!=='Ready')throw new HttpError(409,'This video is not ready to play yet.');if(v.provider==='stream'&&!v.published){const token=await streamRequest('/'+v.object_key+'/token','POST',{exp:Math.floor(Date.now()/1000)+3600});return {source:'https://iframe.videodelivery.net/'+token.token,provider:'stream'};}return {source:v.source,provider:v.provider};}

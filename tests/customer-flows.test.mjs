@@ -6,6 +6,7 @@ import ts from 'typescript';
 import {z} from 'zod';
 import * as brief from '../lib/brief.ts';
 import * as messages from '../lib/customer-messages.ts';
+import * as videoPolicy from '../lib/video-policy.ts';
 async function moduleAt(file,imports,globals={}){
  const code=ts.transpileModule(await readFile(new URL('../'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const module={exports:{}};runInNewContext(code,{exports:module.exports,require:name=>name==='server-only'?{}:imports[name]||{},Response,Request,Headers,URL,AbortSignal,console,process:{env:{}},...globals});return module.exports;
@@ -58,4 +59,21 @@ test('brief validation permits partial drafts but identifies the step with missi
  assert.equal(brief.firstMissingBriefStep({goal:'Goal',audience:'People'}),4);
  assert.equal(brief.firstMissingBriefStep({goal:'Goal',audience:'People',success:'Result'}),-1);
  assert.equal(brief.briefKeys.size,17);
+});
+
+test('Share films includes unlisted videos while site placements and private films stay separate',async()=>{
+ const unlisted={id:'ski',title:'All Can Ski',provider:'bunny',poster:'/api/video-poster/ski',status:'Ready',published:0,consent:0,placement:'none',share_enabled:true,share_key:'ski-link-token',deleted_at:null};
+ const rows=[unlisted,{...unlisted,id:'private',share_enabled:false},{...unlisted,id:'processing',status:'Processing'},{...unlisted,id:'trashed',deleted_at:'2026-10-02'}, {...unlisted,id:'portfolio',published:1,consent:1,placement:'gallery'}];
+ const publicFilms=[{id:'portfolio',title:'Portfolio'},{id:'legacy',title:'Legacy'}];
+ for(const role of ['admin','production','sales']){
+  const client={from:table=>{const q={select:()=>q,is:()=>q,eq:()=>q,or:()=>q,order:()=>q,limit:()=>q,then:resolve=>resolve({data:table==='videos'?rows:[],error:null})};return q;}};
+  const route=await moduleAt('app/api/desk/[...path]/route.ts',{'zod':{z},'@/lib/server':{admin:()=>client,result:async q=>(await q).data,safe,requireMember:async()=>({role,email:'staff@example.invalid'}),getPublicFilms:async()=>publicFilms,readyIntegrations:()=>({})},'@/lib/video-policy':videoPolicy,'@/lib/customer-email':{customerEmailConfigured:()=>true}});
+  const response=await route.GET(new Request('https://studio.test/api/desk/dashboard'),{params:Promise.resolve({path:['dashboard']})});
+  assert.equal(response.status,200);const result=await response.json();
+  assert.deepEqual(result.shareFilms.map(v=>v.id),['ski','portfolio','legacy']);
+  assert.deepEqual(result.publicFilms,publicFilms);
+  const ski=result.shareFilms[0];assert.equal(ski.share_path,'/watch/ski-link-token');assert.equal(ski.poster,'/api/video-poster/ski-link-token');assert.equal(ski.published,false);assert.equal(ski.share_key,undefined);
+  assert.equal(videoPolicy.canWatchVideo(unlisted,'ski-link-token'),true);assert.equal(videoPolicy.canWatchVideo(unlisted,'ski'),false);
+  if(role==='sales')assert.deepEqual(result.videos,[]);
+ }
 });
