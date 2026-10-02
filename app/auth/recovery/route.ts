@@ -5,6 +5,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
   const flowId = url.searchParams.get('sb_flow_id');
+  if (!code) return Response.redirect(new URL('/reset-password', url), 303);
   if (code) {
     const client = await authClient();
     const {data, error} = await client.auth.exchangeCodeForSession(code, flowId ? {flowId} : undefined);

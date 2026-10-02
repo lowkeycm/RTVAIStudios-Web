@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {ArrowUpRight} from 'lucide-react';
 
 export default function ResetPassword() {
@@ -9,19 +9,35 @@ export default function ResetPassword() {
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const initialized = useRef(false);
   useEffect(() => {
-    const controller = new AbortController();
-    fetch('/api/desk/session', {signal: controller.signal, cache: 'no-store'})
-      .then(async response => {const data = await response.json(); setReady(response.ok && !!data.member);})
-      .catch(failure => {if (failure.name !== 'AbortError') setReady(false);});
-    return () => controller.abort();
+    if (initialized.current) return;
+    initialized.current = true;
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const access_token = fragment.get('access_token');
+    const refresh_token = fragment.get('refresh_token');
+    // Tokens are consumed only here and removed from browser history immediately.
+    if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+    async function initialize() {
+      if (fragment.has('error')) throw new Error('This setup link has expired. Ask your administrator to send a new one.');
+      if (access_token || refresh_token) {
+        if (!access_token || !refresh_token) throw new Error('This setup link is incomplete. Ask for a new email.');
+        const response = await fetch('/api/auth/setup', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({access_token,refresh_token})});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'This setup link could not be opened.');
+      }
+      const response = await fetch('/api/desk/session', {cache:'no-store'});
+      const data = await response.json();
+      setReady(response.ok && !!data.member);
+    }
+    initialize().catch(failure => {setError(failure.message);setReady(false);});
   }, []);
 
   return <main className="desk-main"><div className="desk-welcome">
     <span className="eyebrow">TEAM ENTRANCE</span>
     <h1>A fresh<br/>start.</h1>
     {ready === null ? <p role="status">Checking your reset session…</p> : !ready ? <>
-      <p>Your reset session is missing or has expired. Request a new link and open it in the browser where you requested it.</p>
+      <p>{error || 'Your setup session is missing or has expired. Ask your administrator to send a new setup email, or request a password reset.'}</p>
       <a href="/forgot-password" className="button light">Request a reset link<ArrowUpRight size={18}/></a>
     </> : <>
       <p>Choose a new password with at least 12 characters. You’ll sign in again after saving it.</p>

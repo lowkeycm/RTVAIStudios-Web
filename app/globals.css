@@ -69,3 +69,5 @@
 
 /* Video sharing controls */
 .share-control{display:flex;flex-direction:column;gap:10px;align-items:flex-start}.share-control .button{white-space:nowrap}.share-fallback{width:min(360px,75vw);max-width:100%;background:#151c22;border:1px solid #8bbce055;padding:10px;color:#fff;border-radius:5px}.share-library-intro{max-width:680px;color:#b7c0c7;margin:24px 0}.asset-actions{flex-wrap:wrap}.asset-actions .share-control{max-width:100%}.film-dialog .inline-film{aspect-ratio:16/9;width:100%;min-height:0}.film-dialog .inline-film video{height:100%;width:100%;object-fit:contain}
+
+.team-member-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.team-member-actions .button{font-size:.75rem;padding:10px 12px;white-space:nowrap}@media(max-width:1000px){.team-list>div{flex-direction:column}.team-member-actions{justify-content:flex-start}}
